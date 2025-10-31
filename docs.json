@@ -118,15 +118,18 @@
   "navbar": {
     "links": [
       {
+        "label": "Dashboard",
+        "href": "https://cuey.dev/dashboard"
+      },
+      {
+        "label": "Homepage",
+        "href": "https://cuey.dev"
+      },
+      {
         "label": "Support",
         "href": "https://cuey.dev/support"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://cuey.dev/dashboard"
-    }
+    ]
   },
   "contextual": {
     "options": [
