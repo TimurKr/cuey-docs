@@ -1,11 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "maple",
   "name": "Cuey",
   "colors": {
     "primary": "#18181b",
-    "light": "#71717a",
-    "dark": "#09090b"
+    "light": "#f4f4f5",
+    "dark": "#f4f4f5"
   },
   "favicon": "/logo/light.svg",
   "navigation": {
@@ -14,14 +14,20 @@
         "tab": "Concepts",
         "groups": [
           {
-            "group": "Concepts",
+            "group": "Core Concepts",
             "pages": [
+              "/index",
               "concepts/building-blocks",
-              "concepts/retrying-events",
-              "concepts/cron-expressions",
-              "concepts/retry-configuration",
               "concepts/webhook-urls",
               "concepts/common-use-cases"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "concepts/cron-expressions",
+              "concepts/retry-configuration",
+              "concepts/retrying-events"
             ]
           }
         ]
@@ -106,28 +112,14 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/TimurKr/cuey-ts",
-          "icon": "github"
-        },
-        {
-          "anchor": "Dashboard",
-          "href": "https://cuey.dev/dashboard",
-          "icon": "/logo/light.svg"
-        }
-      ]
-    }
+    ]
   },
   "logo": "/logo/light.svg",
   "navbar": {
     "links": [
       {
         "label": "Support",
-        "href": "mailto:timur@joul.app"
+        "href": "https://cuey.dev/support"
       }
     ],
     "primary": {
@@ -150,7 +142,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/TimurKr/cuey-ts"
+      "github": "https://github.com/timurkr/cuey-docs"
     }
   },
   "api": {
