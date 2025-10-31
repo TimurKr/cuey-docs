@@ -1,0 +1,229 @@
+---
+title: "Create Event"
+description: "Schedule a new one-time event"
+---
+
+<Tip>
+Use `cuey.schedule()` as a convenient alias for `cuey.events.create()`. Both methods are equivalent.
+</Tip>
+
+## Overview
+
+Create a new scheduled event that will execute once at the specified time.
+
+<RequestExample>
+
+```typescript Basic event
+import { cuey } from "cuey";
+
+const event = await cuey.events.create({
+  webhook_url: "https://api.example.com/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+  payload: {
+    message: "Happy New Year from Cuey!",
+  },
+});
+```
+
+```typescript With retry configuration
+import { cuey } from "cuey";
+
+const event = await cuey.events.create({
+  webhook_url: "https://api.example.com/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+  payload: {
+    message: "Hello!",
+  },
+  retry_config: {
+    maxRetries: 3,
+    backoffMs: 1000,
+    backoffType: "exponential",
+  },
+});
+```
+
+```typescript With custom headers
+import { cuey } from "cuey";
+
+const event = await cuey.events.create({
+  webhook_url: "https://api.example.com/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer token",
+    "Content-Type": "application/json",
+  },
+  payload: {
+    message: "Hello!",
+  },
+});
+```
+
+</RequestExample>
+
+## Parameters
+
+<ParamField body="webhook_url" type="string" required>
+  The full URL of the webhook endpoint to call. Must be a valid HTTP/HTTPS URL.
+</ParamField>
+
+<ParamField body="method" type="string" default="POST">
+  HTTP method to use for the webhook request. Options: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`. Defaults to `POST`.
+</ParamField>
+
+<ParamField body="scheduled_at" type="string" required>
+  ISO 8601 timestamp when the event should execute. Must be in the future.
+</ParamField>
+
+<ParamField body="headers" type="object | null">
+  Custom headers to include in the webhook request. Object with string keys and values.
+</ParamField>
+
+<ParamField body="payload" type="object | null">
+  Payload to send with the webhook request. Can be any JSON-serializable object.
+</ParamField>
+
+<ParamField body="retry_config" type="object | null">
+  Retry configuration for failed webhook attempts.
+
+  <Expandable title="RetryConfig properties">
+    <ParamField body="maxRetries" type="number" required>
+      Maximum number of retry attempts. Range: 1-10.
+    </ParamField>
+
+    <ParamField body="backoffMs" type="number" required>
+      Initial backoff delay in milliseconds. Range: 100-5000.
+    </ParamField>
+
+    <ParamField body="backoffType" type="string" required>
+      Backoff strategy. Options: `exponential`, `linear`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Response
+
+<ResponseField name="event" type="Event" required>
+  The created event object.
+
+  <Expandable title="Event properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier for the event (UUID).
+    </ResponseField>
+
+    <ResponseField name="scheduled_at" type="string" required>
+      ISO 8601 timestamp when the event is scheduled to execute.
+    </ResponseField>
+
+    <ResponseField name="status" type="EventStatus" required>
+      Initial status will be `pending`.
+    </ResponseField>
+
+    <ResponseField name="webhook_url" type="string" required>
+      The webhook URL that will be called.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod" required>
+      HTTP method used for the webhook request.
+    </ResponseField>
+
+    <ResponseField name="headers" type="object | null">
+      Custom headers to include in the webhook request.
+    </ResponseField>
+
+    <ResponseField name="payload" type="object | null">
+      Payload to send with the webhook request.
+    </ResponseField>
+
+    <ResponseField name="retry_config" type="object | null">
+      Retry configuration for failed webhooks.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+
+```json Success response
+{
+  "id": "event-uuid-here",
+  "cron_id": null,
+  "retry_of": null,
+  "scheduled_at": "2024-12-31T23:59:59Z",
+  "executed_at": null,
+  "status": "pending",
+  "webhook_url": "https://api.example.com/webhook",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer token"
+  },
+  "payload": {
+    "message": "Happy New Year from Cuey!"
+  },
+  "retry_config": {
+    "maxRetries": 3,
+    "backoffMs": 1000,
+    "backoffType": "exponential"
+  },
+  "response_status": null,
+  "response_headers": null,
+  "response_body": null,
+  "response_duration": null,
+  "response_error": null,
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:30:00Z",
+  "team_id": "team-uuid-here"
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+<Warning>
+The `scheduled_at` timestamp must be in the future. The SDK validates this client-side before making the API call.
+</Warning>
+
+- `ValidationError`: If `scheduled_at` is in the past or invalid, or if webhook URL is invalid
+- `UnauthorizedError`: If API key is invalid or missing
+
+## Examples
+
+### Schedule Event in One Hour
+
+```typescript
+import { cuey } from "cuey";
+
+const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
+
+const event = await cuey.events.create({
+  webhook_url: "https://api.example.com/webhook",
+  scheduled_at: oneHourFromNow.toISOString(),
+  payload: {
+    message: "Scheduled for 1 hour from now",
+  },
+});
+
+console.log("Event scheduled:", event.id);
+```
+
+### Schedule Multiple Events
+
+```typescript
+import { cuey } from "cuey";
+
+const events = await Promise.all([
+  cuey.events.create({
+    webhook_url: "https://api.example.com/webhook",
+    scheduled_at: new Date(Date.now() + 60000).toISOString(),
+    payload: { event: "reminder_1" },
+  }),
+  cuey.events.create({
+    webhook_url: "https://api.example.com/webhook",
+    scheduled_at: new Date(Date.now() + 120000).toISOString(),
+    payload: { event: "reminder_2" },
+  }),
+]);
+
+console.log(`Scheduled ${events.length} events`);
+```
+

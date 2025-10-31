@@ -1,0 +1,9 @@
+---
+title: "Update Cron"
+openapi: "PUT /api/v1/crons/{id}"
+---
+
+<Warning>
+Updating a cron deletes all pending events created by that cron. New events are generated based on the updated schedule.
+</Warning>
+

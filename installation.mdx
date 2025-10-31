@@ -1,0 +1,77 @@
+---
+title: "Installation"
+description: "Install the Cuey TypeScript client"
+---
+
+## Requirements
+
+- A Cuey account and API key ([Get one here](https://cuey.dev/dashboard))
+
+## Install the Package
+
+Install the `cuey` package using your preferred package manager:
+
+<CodeGroup>
+
+```bash npm
+npm install cuey
+```
+
+```bash yarn
+yarn add cuey
+```
+
+```bash pnpm
+pnpm add cuey
+```
+
+```bash bun
+bun add cuey
+```
+
+</CodeGroup>
+
+## Configuration
+
+After obtaining your API key from the [dashboard](https://cuey.dev/dashboard), set it as an environment variable named `CUEY_API_KEY`:
+
+## Usage
+
+Use the default `cuey` instance, which automatically reads the `CUEY_API_KEY` environment variable:
+
+```typescript
+import { cuey } from "cuey";
+
+await cuey.schedule({ ... });
+```
+
+<Info>
+  The `cuey` instance is a pre-configured client that uses the `CUEY_API_KEY`
+  environment variable for authentication. For advanced configuration options,
+  see the [Configuration guide](/typescript-client/configuration).
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Follow the quick start guide to schedule your first webhook.
+  </Card>
+  <Card
+    title="TypeScript Client Overview"
+    icon="code"
+    href="/typescript-client/overview"
+  >
+    Learn about the client API and available methods.
+  </Card>
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/typescript-client/configuration"
+  >
+    Deep dive into configuration options.
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Explore the REST API documentation.
+  </Card>
+</CardGroup>

@@ -1,0 +1,234 @@
+---
+title: "Create Cron"
+description: "Create a new recurring cron job"
+---
+
+<Tip>
+Use `cuey.repeat()` as a convenient alias for `cuey.crons.create()`. Both methods are equivalent.
+</Tip>
+
+## Overview
+
+Create a new cron job that will execute according to the specified cron expression.
+
+<RequestExample>
+
+```typescript Basic cron job
+import { cuey } from "cuey";
+
+const cron = await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 9 * * *", // Daily at 9 AM
+  timezone: "America/New_York",
+  payload: {
+    report_type: "daily",
+  },
+});
+```
+
+```typescript With retry configuration
+import { cuey } from "cuey";
+
+const cron = await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 9 * * *",
+  timezone: "America/New_York",
+  payload: {
+    report_type: "daily",
+  },
+  retry_config: {
+    maxRetries: 5,
+    backoffMs: 2000,
+    backoffType: "exponential",
+  },
+});
+```
+
+```typescript Inactive cron job
+import { cuey } from "cuey";
+
+const cron = await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 0 * * *",
+  is_active: false, // Won't execute until activated
+});
+```
+
+</RequestExample>
+
+## Parameters
+
+<ParamField body="webhook_url" type="string" required>
+  The full URL of the webhook endpoint to call. Must be a valid HTTP/HTTPS URL.
+</ParamField>
+
+<ParamField body="method" type="string" default="POST">
+  HTTP method to use for the webhook request. Options: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`. Defaults to `POST`.
+</ParamField>
+
+<ParamField body="cron_expression" type="string" required>
+  Cron expression defining the schedule (e.g., `0 9 * * *` for daily at 9 AM). See the [Cron Expressions Guide](/guides/cron-expressions) for more information.
+</ParamField>
+
+<ParamField body="timezone" type="string | null">
+  Timezone for the cron schedule (e.g., `America/New_York`). `null` or omit for UTC.
+</ParamField>
+
+<ParamField body="headers" type="object | null">
+  Custom headers to include in the webhook request. Object with string keys and values.
+</ParamField>
+
+<ParamField body="payload" type="object | null">
+  Payload to send with the webhook request. Can be any JSON-serializable object.
+</ParamField>
+
+<ParamField body="retry_config" type="object | null">
+  Retry configuration for failed webhook attempts.
+
+  <Expandable title="RetryConfig properties">
+    <ParamField body="maxRetries" type="number" required>
+      Maximum number of retry attempts. Range: 1-10.
+    </ParamField>
+
+    <ParamField body="backoffMs" type="number" required>
+      Initial backoff delay in milliseconds. Range: 100-5000.
+    </ParamField>
+
+    <ParamField body="backoffType" type="string" required>
+      Backoff strategy. Options: `exponential`, `linear`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="is_active" type="boolean" default="true">
+  Whether the cron job should be active immediately. Defaults to `true`. Set to `false` to create an inactive cron that won't execute until activated.
+</ParamField>
+
+## Response
+
+<ResponseField name="cron" type="Cron" required>
+  The created cron job object.
+
+  <Expandable title="Cron properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier for the cron job (UUID).
+    </ResponseField>
+
+    <ResponseField name="cron_expression" type="string" required>
+      Cron expression defining the schedule.
+    </ResponseField>
+
+    <ResponseField name="timezone" type="string | null">
+      Timezone for the cron schedule.
+    </ResponseField>
+
+    <ResponseField name="webhook_url" type="string" required>
+      The webhook URL that will be called.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod" required>
+      HTTP method used for the webhook request.
+    </ResponseField>
+
+    <ResponseField name="is_active" type="boolean | null">
+      Whether the cron job is active.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+
+```json Success response
+{
+  "id": "cron-uuid-here",
+  "cron_expression": "0 9 * * *",
+  "timezone": "America/New_York",
+  "webhook_url": "https://api.example.com/webhook",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer token"
+  },
+  "payload": {
+    "report_type": "daily"
+  },
+  "retry_config": {
+    "maxRetries": 5,
+    "backoffMs": 2000,
+    "backoffType": "exponential"
+  },
+  "is_active": true,
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:30:00Z",
+  "team_id": "team-uuid-here"
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+- `ValidationError`: If cron expression is invalid or webhook URL is invalid
+- `UnauthorizedError`: If API key is invalid or missing
+
+## Examples
+
+### Common Cron Expressions
+
+```typescript
+import { cuey } from "cuey";
+
+// Every minute
+await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "* * * * *",
+});
+
+// Every hour
+await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 * * * *",
+});
+
+// Daily at midnight
+await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 0 * * *",
+});
+
+// Every Monday at 9 AM
+await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 9 * * 1",
+  timezone: "America/New_York",
+});
+```
+
+### Create Multiple Cron Jobs
+
+```typescript
+import { cuey } from "cuey";
+
+// Hourly health check
+const hourlyCheck = await cuey.crons.create({
+  webhook_url: "https://api.example.com/health-check",
+  cron_expression: "0 * * * *",
+  payload: { check_type: "health" },
+});
+
+// Daily backup
+const dailyBackup = await cuey.crons.create({
+  webhook_url: "https://api.example.com/backup",
+  cron_expression: "0 2 * * *", // 2 AM daily
+  timezone: "UTC",
+  payload: { backup_type: "full" },
+});
+
+// Weekly report
+const weeklyReport = await cuey.crons.create({
+  webhook_url: "https://api.example.com/report",
+  cron_expression: "0 9 * * 1", // Monday at 9 AM
+  timezone: "America/New_York",
+  payload: { report_type: "weekly" },
+});
+```
+

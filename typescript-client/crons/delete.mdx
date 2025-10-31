@@ -1,0 +1,85 @@
+---
+title: "Delete Cron"
+description: "Delete a cron job"
+---
+
+## Overview
+
+Delete a cron job. Deleting a cron job will also delete all events created by that cron job (due to cascade delete).
+
+<RequestExample>
+
+```typescript Delete cron
+import { cuey } from "cuey";
+
+await cuey.crons.delete("cron-id");
+```
+
+</RequestExample>
+
+## Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the cron job to delete.
+</ParamField>
+
+## Response
+
+Returns `void` on success. No response body is returned.
+
+<ResponseExample>
+
+```typescript Success
+// Method returns void, no response body
+```
+
+</ResponseExample>
+
+## Errors
+
+<Warning>
+Deleting a cron job will also delete all events created by that cron job (due to cascade delete).
+</Warning>
+
+- `NotFoundError`: If the cron job doesn't exist
+- `UnauthorizedError`: If API key is invalid or missing
+
+## Examples
+
+### Delete Cron with Confirmation
+
+```typescript
+import { cuey } from "cuey";
+
+const cron = await cuey.crons.get("cron-id");
+
+// List events created by this cron
+const { data: events } = await cuey.events.list({
+  cron_id: cron.id,
+});
+
+console.log(`This cron has ${events.length} events that will be deleted`);
+
+// Delete the cron (and all its events)
+await cuey.crons.delete(cron.id);
+console.log("Cron deleted successfully");
+```
+
+### Safe Delete with Error Handling
+
+```typescript
+import { cuey } from "cuey";
+import { NotFoundError } from "cuey";
+
+try {
+  await cuey.crons.delete("cron-id");
+  console.log("Cron deleted successfully");
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    console.error("Cron not found");
+  } else {
+    console.error("Error deleting cron:", error);
+  }
+}
+```
+

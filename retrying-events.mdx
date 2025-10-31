@@ -1,0 +1,141 @@
+---
+title: "Retrying Events"
+description: "What happens when webhook delivery fails"
+---
+
+## Overview
+
+When a webhook delivery fails, Cuey implements a robust retry mechanism to ensure reliable delivery. This page explains how Cuey handles failures and retries.
+
+## Delivery Failure
+
+A webhook delivery is considered failed when:
+
+- The HTTP request times out
+- The server returns a non-2xx status code (e.g., 4xx, 5xx)
+- A network error occurs (connection refused, DNS failure, etc.)
+- The server doesn't respond within the timeout period
+
+When a delivery fails, the original event is immediately marked as **Failed**.
+
+## Retry Mechanism
+
+### Retry Configuration
+
+You can configure retry behavior when creating an event or cron job:
+
+<ResponseField name="RetryConfig" type="object">
+  Configuration for retry behavior.
+
+  <Expandable title="RetryConfig properties">
+    <ResponseField name="maxRetries" type="number" required>
+      Maximum number of retry attempts. Range: 1-10. Defaults to 3 if not specified.
+    </ResponseField>
+
+    <ResponseField name="backoffMs" type="number" required>
+      Initial backoff delay in milliseconds before the first retry. Range: 100-5000.
+    </ResponseField>
+
+    <ResponseField name="backoffType" type="string" required>
+      Backoff strategy. Options: `exponential` (backoff doubles each retry) or `linear` (constant backoff).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Retry Process
+
+When a webhook delivery fails:
+
+1. **Original event**: Immediately marked as **Failed**
+2. **Retry events**: If retries are configured, Cuey creates new events for each retry attempt
+3. **Retry event properties**:
+   - Status: **Processing** (until execution completes)
+   - `retry_of`: Set to the ID of the original failed event
+   - Scheduled time: Based on backoff delay from the original failure time
+4. **Billing**: Each retry event is billed as a separate event
+
+### Retry Event Creation
+
+For each retry, a new event is created with:
+
+- The same webhook URL, payload, and headers as the original event
+- `retry_of` field set to the original event's ID
+- `scheduled_at` set based on the backoff delay
+- Status initially set to **Processing**
+
+### Retry Timing Example
+
+For a retry configuration with `maxRetries: 3`, `backoffMs: 1000`, and `backoffType: "exponential"`:
+
+- **Original event**: Fails immediately → Status: **Failed**
+- **Retry event 1**: Created and scheduled 1 second later (1000ms backoff)
+- **Retry event 2**: Created and scheduled 2 seconds after retry 1 (2000ms backoff)
+- **Retry event 3**: Created and scheduled 4 seconds after retry 2 (4000ms backoff)
+
+For `backoffType: "linear"` with the same configuration:
+
+- **Original event**: Fails immediately → Status: **Failed**
+- **Retry event 1**: Created and scheduled 1 second later (1000ms backoff)
+- **Retry event 2**: Created and scheduled 1 second after retry 1 (1000ms backoff)
+- **Retry event 3**: Created and scheduled 1 second after retry 2 (1000ms backoff)
+
+### Tracking Retries
+
+You can identify retry events by checking the `retry_of` field, which contains the ID of the original failed event. This allows you to:
+
+- Track all retry attempts for a specific original event
+- See the complete retry history by querying events with a specific `retry_of` value
+- Understand the relationship between the original event and its retries
+
+### Success After Retry
+
+If any retry event succeeds (receives a 2xx status code), it transitions to **Success** status. No further retry events are created after a successful retry.
+
+## Monitoring Failed Events and Retries
+
+You can monitor failed events and their retries by:
+
+1. **Filtering events by status**: List all events with `status: "failed"` to see original failures
+2. **Finding retry events**: Query events with a specific `retry_of` value to see all retry attempts for an original event
+3. **Checking event details**: Retrieve a specific event to see its execution results, including:
+   - Response status codes
+   - Response headers and body (truncated to 1KB)
+   - Response duration
+   - Error messages if the attempt failed
+4. **Understanding retry relationships**: Use the `retry_of` field to trace retry events back to their original failed event
+
+## Best Practices
+
+### Configure Appropriate Retries
+
+- Use **exponential backoff** for transient failures (server overload, temporary network issues)
+- Use **linear backoff** for consistent retry intervals
+- Set `maxRetries` based on your tolerance for delayed delivery vs. giving up
+
+### Handle Different Failure Types
+
+- **4xx errors** (client errors): Usually indicate invalid requests—retries may not help unless you fix the request
+- **5xx errors** (server errors): Often transient—retries are more likely to succeed
+- **Timeouts**: May indicate server overload—exponential backoff is recommended
+
+### Monitor and Alert
+
+Set up monitoring for failed events and configure alerts to notify you when failures occur, especially for critical webhooks.
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Building Blocks" icon="puzzle" href="/building-blocks">
+    Understand events and crons.
+  </Card>
+  <Card title="Retry Configuration Guide" icon="arrow-rotate-right" href="/guides/retry-configuration">
+    Learn more about configuring retries.
+  </Card>
+  <Card title="Events" icon="calendar" href="/typescript-client/events">
+    Explore the Events API reference.
+  </Card>
+  <Card title="TypeScript Error Handling" icon="code" href="/typescript-client/error-handling">
+    Learn how to handle errors in the TypeScript client.
+  </Card>
+</CardGroup>
+

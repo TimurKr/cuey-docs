@@ -1,0 +1,103 @@
+---
+title: "Introduction"
+description: "Cuey REST API overview"
+---
+
+## Base URL
+
+```
+https://cuey.dev
+```
+
+## Authentication
+
+All requests require a Bearer token:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+Get your API key from [team settings](https://cuey.dev/dashboard). See [Authentication](/api-reference/authentication) for details.
+
+## Endpoints
+
+**Events** — Schedule one-time webhooks:
+- `GET /api/v1/events` - List events
+- `POST /api/v1/events` - Create event
+- `GET /api/v1/events/{id}` - Get event
+- `PUT /api/v1/events/{id}` - Update event
+- `DELETE /api/v1/events/{id}` - Delete event
+
+**Crons** — Schedule recurring webhooks:
+- `GET /api/v1/crons` - List crons
+- `POST /api/v1/crons` - Create cron
+- `GET /api/v1/crons/{id}` - Get cron
+- `PUT /api/v1/crons/{id}` - Update cron
+- `DELETE /api/v1/crons/{id}` - Delete cron
+
+## Response Format
+
+All responses return JSON. Success responses wrap data in a `data` field:
+
+```json
+{
+  "data": { /* resource */ }
+}
+```
+
+Paginated responses include a `pagination` object:
+
+```json
+{
+  "data": [ /* array of resources */ ],
+  "pagination": {
+    "page": 0,
+    "limit": 100,
+    "total": 250
+  }
+}
+```
+
+Errors follow this format:
+
+```json
+{
+  "error": {
+    "message": "Error message",
+    "code": "ERROR_CODE"
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/api-reference/authentication"
+  >
+    Learn about API authentication.
+  </Card>
+  <Card
+    title="Events"
+    icon="calendar"
+    href="/api-reference/events"
+  >
+    Schedule one-time webhooks.
+  </Card>
+  <Card
+    title="Crons"
+    icon="refresh"
+    href="/api-reference/crons"
+  >
+    Schedule recurring webhooks.
+  </Card>
+  <Card
+    title="Errors"
+    icon="exclamation-triangle"
+    href="/api-reference/errors"
+  >
+    Error responses.
+  </Card>
+</CardGroup>

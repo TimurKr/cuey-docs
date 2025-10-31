@@ -1,0 +1,645 @@
+---
+title: "Types Reference"
+description: "Complete TypeScript types reference for the Cuey client"
+---
+
+## Overview
+
+All types are exported from the `cuey` package. This page provides a complete reference of all available types.
+
+## Importing Types
+
+```typescript
+import type {
+  Cron,
+  Event,
+  HttpMethod,
+  EventStatus,
+  RetryConfig,
+  CreateCronInput,
+  UpdateCronInput,
+  CreateEventInput,
+  UpdateEventInput,
+  CronsQueryParams,
+  EventsQueryParams,
+  CueyConfig,
+} from "cuey";
+```
+
+## Core Types
+
+### Cron
+
+Represents a recurring cron job.
+
+<ResponseField name="Cron" type="interface">
+  Interface representing a cron job.
+
+  <Expandable title="Cron properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier (UUID).
+    </ResponseField>
+
+    <ResponseField name="cron_expression" type="string" required>
+      Cron expression defining the schedule (e.g., `0 0 * * *`).
+    </ResponseField>
+
+    <ResponseField name="timezone" type="string | null">
+      Timezone for the cron schedule (e.g., `America/New_York`). `null` for UTC.
+    </ResponseField>
+
+    <ResponseField name="webhook_url" type="string" required>
+      Webhook URL that will be called.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod" required>
+      HTTP method used for the webhook request.
+    </ResponseField>
+
+    <ResponseField name="headers" type="object | null">
+      Custom headers to include in the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="payload" type="object | null">
+      Payload to send with the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="retry_config" type="RetryConfig | null">
+      Retry configuration for failed webhooks. `null` if not set.
+
+      <Expandable title="RetryConfig properties">
+        <ResponseField name="maxRetries" type="number" required>
+          Maximum retry attempts. Range: 1-10.
+        </ResponseField>
+
+        <ResponseField name="backoffMs" type="number" required>
+          Backoff delay in milliseconds. Range: 100-5000.
+        </ResponseField>
+
+        <ResponseField name="backoffType" type="string" required>
+          Backoff strategy. Values: `exponential`, `linear`.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+
+    <ResponseField name="is_active" type="boolean | null">
+      Whether the cron job is active. `null` defaults to `true`.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string | null">
+      ISO 8601 timestamp when the cron job was created.
+    </ResponseField>
+
+    <ResponseField name="updated_at" type="string | null">
+      ISO 8601 timestamp when the cron job was last updated.
+    </ResponseField>
+
+    <ResponseField name="team_id" type="string | null">
+      Team ID associated with the cron job.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Event
+
+Represents a scheduled event.
+
+<ResponseField name="Event" type="interface">
+  Interface representing a scheduled event.
+
+  <Expandable title="Event properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier (UUID).
+    </ResponseField>
+
+    <ResponseField name="cron_id" type="string | null">
+      Parent cron ID if this event was created by a cron job. `null` if created manually.
+    </ResponseField>
+
+    <ResponseField name="retry_of" type="string | null">
+      Original event ID if this is a retry attempt. `null` for original events.
+    </ResponseField>
+
+    <ResponseField name="scheduled_at" type="string" required>
+      ISO 8601 timestamp when the event is scheduled to execute.
+    </ResponseField>
+
+    <ResponseField name="executed_at" type="string | null">
+      ISO 8601 timestamp when the event was executed. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="status" type="EventStatus" required>
+      Current status of the event. See EventStatus type for possible values.
+    </ResponseField>
+
+    <ResponseField name="webhook_url" type="string" required>
+      Webhook URL that will be called.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod" required>
+      HTTP method used for the webhook request.
+    </ResponseField>
+
+    <ResponseField name="headers" type="object | null">
+      Custom headers included in the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="payload" type="object | null">
+      Payload sent with the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="retry_config" type="RetryConfig | null">
+      Retry configuration for failed webhooks. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="response_status" type="number | null">
+      HTTP status code from the webhook response. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_headers" type="object | null">
+      Response headers from the webhook. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_body" type="string | null">
+      Response body from the webhook (truncated to 1_KB). `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_duration" type="number | null">
+      Duration of the webhook request in milliseconds. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_error" type="string | null">
+      Error message if the webhook execution failed. `null` if successful or not yet executed.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string | null">
+      ISO 8601 timestamp when the event was created.
+    </ResponseField>
+
+    <ResponseField name="updated_at" type="string | null">
+      ISO 8601 timestamp when the event was last updated.
+    </ResponseField>
+
+    <ResponseField name="team_id" type="string | null">
+      Team ID associated with the event.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### HttpMethod
+
+Supported HTTP methods for webhook requests.
+
+<ResponseField name="HttpMethod" type="union">
+  Union type of supported HTTP methods.
+
+  <Expandable title="HttpMethod values">
+    <ResponseField name="GET" type="string">
+      GET request method.
+    </ResponseField>
+
+    <ResponseField name="POST" type="string">
+      POST request method (default).
+    </ResponseField>
+
+    <ResponseField name="PUT" type="string">
+      PUT request method.
+    </ResponseField>
+
+    <ResponseField name="PATCH" type="string">
+      PATCH request method.
+    </ResponseField>
+
+    <ResponseField name="DELETE" type="string">
+      DELETE request method.
+    </ResponseField>
+
+    <ResponseField name="HEAD" type="string">
+      HEAD request method.
+    </ResponseField>
+
+    <ResponseField name="OPTIONS" type="string">
+      OPTIONS request method.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### EventStatus
+
+Status values for event execution.
+
+<ResponseField name="EventStatus" type="union">
+  Union type of event status values.
+
+  <Expandable title="EventStatus values">
+    <ResponseField name="pending" type="string">
+      Event is scheduled but not yet executed.
+    </ResponseField>
+
+    <ResponseField name="processing" type="string">
+      Event is currently being executed.
+    </ResponseField>
+
+    <ResponseField name="success" type="string">
+      Event executed successfully.
+    </ResponseField>
+
+    <ResponseField name="failed" type="string">
+      Event execution failed (after all retries).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### RetryConfig
+
+Retry configuration for webhooks.
+
+<ResponseField name="RetryConfig" type="interface">
+  Interface for retry configuration.
+
+  <Expandable title="RetryConfig properties">
+    <ResponseField name="maxRetries" type="number" required>
+      Maximum retry attempts. Range: 1-10.
+    </ResponseField>
+
+    <ResponseField name="backoffMs" type="number" required>
+      Backoff delay in milliseconds. Range: 100-5000.
+    </ResponseField>
+
+    <ResponseField name="backoffType" type="string" required>
+      Backoff strategy. Values: `exponential`, `linear`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Json
+
+JSON type for API payloads.
+
+<ResponseField name="Json" type="union">
+  Recursive union type representing any JSON-serializable value.
+
+  <Expandable title="Json values">
+    <ResponseField name="string" type="string">
+      String value.
+    </ResponseField>
+
+    <ResponseField name="number" type="number">
+      Number value.
+    </ResponseField>
+
+    <ResponseField name="boolean" type="boolean">
+      Boolean value.
+    </ResponseField>
+
+    <ResponseField name="null" type="null">
+      Null value.
+    </ResponseField>
+
+    <ResponseField name="object" type="object">
+      Object with string keys and Json values.
+    </ResponseField>
+
+    <ResponseField name="array" type="array">
+      Array of Json values.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Input Types
+
+### CreateCronInput
+
+Input for creating a cron job.
+
+<ResponseField name="CreateCronInput" type="interface">
+  Interface for creating a cron job.
+
+  <Expandable title="CreateCronInput properties">
+    <ResponseField name="webhook_url" type="string" required>
+      Full URL or relative path of the webhook endpoint.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod">
+      HTTP method to use. Defaults to `POST`.
+    </ResponseField>
+
+    <ResponseField name="cron_expression" type="string" required>
+      Cron expression defining the schedule.
+    </ResponseField>
+
+    <ResponseField name="timezone" type="string | null">
+      Timezone for the cron schedule. `null` for UTC.
+    </ResponseField>
+
+    <ResponseField name="headers" type="Record&lt;string, string&gt; | null">
+      Custom headers to include in the webhook request.
+    </ResponseField>
+
+    <ResponseField name="payload" type="Json | null">
+      Payload to send with the webhook request.
+    </ResponseField>
+
+    <ResponseField name="retry_config" type="RetryConfig | null">
+      Retry configuration for failed webhooks.
+    </ResponseField>
+
+    <ResponseField name="is_active" type="boolean">
+      Whether the cron job should be active immediately. Defaults to `true`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### UpdateCronInput
+
+Input for updating a cron job (same structure as `CreateCronInput`).
+
+<ResponseField name="UpdateCronInput" type="interface">
+  Interface for updating a cron job. Same structure as `CreateCronInput`.
+</ResponseField>
+
+### CreateEventInput
+
+Input for creating an event.
+
+<ResponseField name="CreateEventInput" type="interface">
+  Interface for creating an event.
+
+  <Expandable title="CreateEventInput properties">
+    <ResponseField name="webhook_url" type="string" required>
+      Full URL or relative path of the webhook endpoint.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod">
+      HTTP method to use. Defaults to `POST`.
+    </ResponseField>
+
+    <ResponseField name="scheduled_at" type="string" required>
+      ISO 8601 timestamp when the event should execute. Must be in the future.
+    </ResponseField>
+
+    <ResponseField name="headers" type="Record&lt;string, string&gt; | null">
+      Custom headers to include in the webhook request.
+    </ResponseField>
+
+    <ResponseField name="payload" type="Json | null">
+      Payload to send with the webhook request.
+    </ResponseField>
+
+    <ResponseField name="retry_config" type="RetryConfig | null">
+      Retry configuration for failed webhooks.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### UpdateEventInput
+
+Input for updating an event (same structure as `CreateEventInput`).
+
+<ResponseField name="UpdateEventInput" type="interface">
+  Interface for updating an event. Same structure as `CreateEventInput`.
+</ResponseField>
+
+## Query Parameter Types
+
+### CronsQueryParams
+
+Query parameters for listing crons.
+
+<ResponseField name="CronsQueryParams" type="interface">
+  Interface for query parameters when listing crons.
+
+  <Expandable title="CronsQueryParams properties">
+    <ResponseField name="page" type="number" default="0">
+      Page number (0-indexed). Defaults to 0.
+    </ResponseField>
+
+    <ResponseField name="limit" type="number" default="100">
+      Number of items per page. Range: 1-1000. Defaults to 100.
+    </ResponseField>
+
+    <ResponseField name="is_active" type="boolean">
+      Filter by active status. `true` for active crons, `false` for inactive crons.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### EventsQueryParams
+
+Query parameters for listing events.
+
+<ResponseField name="EventsQueryParams" type="interface">
+  Interface for query parameters when listing events.
+
+  <Expandable title="EventsQueryParams properties">
+    <ResponseField name="page" type="number" default="0">
+      Page number (0-indexed). Defaults to 0.
+    </ResponseField>
+
+    <ResponseField name="limit" type="number" default="100">
+      Number of items per page. Range: 1-1000. Defaults to 100.
+    </ResponseField>
+
+    <ResponseField name="status" type="EventStatus">
+      Filter events by status.
+    </ResponseField>
+
+    <ResponseField name="cron_id" type="string">
+      Filter events by the cron job that created them.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Configuration Types
+
+### CueyConfig
+
+Configuration options for the Cuey client.
+
+<ResponseField name="CueyConfig" type="interface">
+  Interface for Cuey client configuration.
+
+  <Expandable title="CueyConfig properties">
+    <ResponseField name="baseUrl" type="string">
+      Base URL for resolving relative webhook URLs.
+    </ResponseField>
+
+    <ResponseField name="apiKey" type="string">
+      API key for authentication.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## API Response Types
+
+### ApiSuccess
+
+Standard API success response.
+
+<ResponseField name="ApiSuccess" type="interface">
+  Generic interface for API success responses.
+
+  <Expandable title="ApiSuccess properties">
+    <ResponseField name="data" type="T" required>
+      The response data. Type parameter `T` represents the data type.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### ApiSuccessWithPagination
+
+Paginated API success response.
+
+<ResponseField name="ApiSuccessWithPagination" type="interface">
+  Generic interface for paginated API success responses.
+
+  <Expandable title="ApiSuccessWithPagination properties">
+    <ResponseField name="data" type="T[]" required>
+      Array of response items. Type parameter `T` represents the item type.
+    </ResponseField>
+
+    <ResponseField name="pagination" type="object" required>
+      Pagination information.
+
+      <Expandable title="Pagination properties">
+        <ResponseField name="page" type="number" required>
+          Current page number (0-indexed).
+        </ResponseField>
+
+        <ResponseField name="limit" type="number" required>
+          Number of items per page.
+        </ResponseField>
+
+        <ResponseField name="total" type="number" required>
+          Total number of items across all pages.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Error Types
+
+See the [Error Handling](/typescript-client/error-handling) page for complete error type documentation.
+
+<ResponseField name="CueyError" type="class">
+  Base error class for all Cuey API errors. Extends JavaScript's `Error`.
+</ResponseField>
+
+<ResponseField name="CueyErrorCode" type="union">
+  Union type of all possible error codes.
+
+  <Expandable title="CueyErrorCode values">
+    <ResponseField name="UNAUTHORIZED" type="string">
+      Authentication failed or API key is invalid/missing.
+    </ResponseField>
+
+    <ResponseField name="NOT_FOUND" type="string">
+      Requested resource does not exist.
+    </ResponseField>
+
+    <ResponseField name="BAD_REQUEST" type="string">
+      Request is invalid.
+    </ResponseField>
+
+    <ResponseField name="VALIDATION_ERROR" type="string">
+      Request validation failed.
+    </ResponseField>
+
+    <ResponseField name="INTERNAL_SERVER_ERROR" type="string">
+      Server error occurred.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Type Guards and Utilities
+
+### Checking Event Status
+
+```typescript
+function isPending(event: Event): boolean {
+  return event.status === "pending";
+}
+
+function isSuccess(event: Event): boolean {
+  return event.status === "success";
+}
+
+function isFailed(event: Event): boolean {
+  return event.status === "failed";
+}
+```
+
+### Type Narrowing
+
+```typescript
+function handleEvent(event: Event) {
+  switch (event.status) {
+    case "pending":
+      // TypeScript knows event.status is "pending"
+      console.log("Scheduled for:", event.scheduled_at);
+      break;
+    case "success":
+      // TypeScript knows event.status is "success"
+      console.log("Response:", event.response_status);
+      break;
+    case "failed":
+      // TypeScript knows event.status is "failed"
+      console.log("Error:", event.response_error);
+      break;
+  }
+}
+```
+
+### Type-Safe Payload Handling
+
+```typescript
+interface MyPayload {
+  action: string;
+  userId: string;
+  data: Record<string, unknown>;
+}
+
+const cron = await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 0 * * *",
+  payload: {
+    action: "daily_report",
+    userId: "123",
+    data: {},
+  } satisfies MyPayload,
+});
+```
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card
+    title="Error Handling"
+    icon="exclamation-triangle"
+    href="/typescript-client/error-handling"
+  >
+    Learn about error types and handling.
+  </Card>
+  <Card
+    title="Advanced Configuration"
+    icon="gear"
+    href="/typescript-client/advanced-configuration"
+  >
+    Learn about configuration options.
+  </Card>
+  <Card
+    title="Events"
+    icon="calendar"
+    href="/typescript-client/events"
+  >
+    See events resource methods.
+  </Card>
+  <Card
+    title="Crons"
+    icon="refresh"
+    href="/typescript-client/crons"
+  >
+    See crons resource methods.
+  </Card>
+</CardGroup>

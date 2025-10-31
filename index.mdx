@@ -1,0 +1,93 @@
+---
+title: "Introduction"
+description: "Welcome to Cuey - Precision webhook scheduling"
+---
+
+## What is Cuey?
+
+Cuey schedules webhooks—one-time events or recurring cron jobs. Simple and precise.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Precision Timing" icon="clock">
+    Events are scheduled with millisecond precision and delivered within ±10
+    milliseconds accuracy.
+  </Card>
+  <Card title="Recurring Jobs" icon="refresh">
+    Create cron jobs that run on schedule with timezone support and automatic
+    event generation.
+  </Card>
+  <Card title="Smart Retries" icon="arrow-rotate-right">
+    Configurable retry logic with exponential or linear backoff for failed
+    webhook deliveries.
+  </Card>
+  <Card title="Complete History" icon="database">
+    Track every webhook execution with response data, status codes, and error
+    messages.
+  </Card>
+  <Card title="Type-Safe SDK" icon="code">
+    Full TypeScript support with comprehensive type definitions and excellent
+    IDE autocomplete.
+  </Card>
+  <Card title="REST API" icon="plug">
+    Simple REST API for direct integration or building custom clients in any
+    language.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+Schedule a one-time webhook:
+
+```typescript
+import { cuey } from "cuey";
+
+const event = await cuey.schedule({
+  webhook_url: "https://api.example.com/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+  payload: { message: "Happy New Year!" },
+});
+```
+
+Create a recurring webhook:
+
+```typescript
+const cron = await cuey.repeat({
+  webhook_url: "https://api.example.com/daily-report",
+  cron_expression: "0 9 * * *", // 9 AM daily
+  timezone: "America/New_York",
+  payload: { report_type: "daily" },
+});
+```
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Building Blocks" icon="puzzle" href="/building-blocks">
+    Understand events and crons—the core concepts of Cuey.
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get up and running in minutes with our quick start guide.
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Install the TypeScript client and start building.
+  </Card>
+  <Card
+    title="Retrying Events"
+    icon="exclamation-triangle"
+    href="/retrying-events"
+  >
+    Learn what happens when webhook delivery fails.
+  </Card>
+  <Card
+    title="TypeScript Client"
+    icon="code"
+    href="/typescript-client/overview"
+  >
+    Learn about the type-safe SDK with comprehensive examples.
+  </Card>
+  <Card title="REST API" icon="plug" href="/api-reference/introduction">
+    Explore the REST API for direct integration.
+  </Card>
+</CardGroup>

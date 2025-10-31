@@ -1,0 +1,435 @@
+---
+title: "Common Use Cases"
+description: "Real-world examples and use cases for Cuey"
+---
+
+## Overview
+
+This guide demonstrates common use cases and patterns for using Cuey in real-world applications.
+
+## Scheduled Notifications
+
+Send reminders or notifications at specific times.
+
+### One-Time Reminder
+
+```typescript
+import { cuey } from "cuey";
+
+async function scheduleReminder(userId: string, reminderTime: Date) {
+  await cuey.schedule({
+    webhook_url: "https://api.example.com/notifications",
+    method: "POST",
+    scheduled_at: reminderTime.toISOString(),
+    headers: {
+      "Authorization": `Bearer ${process.env.API_TOKEN}`,
+    },
+    payload: {
+      user_id: userId,
+      type: "reminder",
+      message: "Don't forget to complete your task!",
+    },
+  });
+}
+
+// Schedule reminder for 1 hour from now
+scheduleReminder("user-123", new Date(Date.now() + 60 * 60 * 1000));
+```
+
+### Recurring Daily Reminders
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/daily-reminder",
+  method: "POST",
+  cron_expression: "0 9 * * *", // 9 AM daily
+  timezone: "America/New_York",
+  payload: {
+    reminder_type: "daily_standup",
+  },
+});
+```
+
+## Automated Reports
+
+Generate and send reports on a schedule.
+
+### Daily Reports
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/reports/daily",
+  method: "POST",
+  cron_expression: "0 8 * * *", // 8 AM daily
+  timezone: "America/New_York",
+  payload: {
+    report_type: "daily_summary",
+    recipients: ["team@example.com"],
+  },
+  retry_config: {
+    maxRetries: 3,
+    backoffMs: 2000,
+    backoffType: "exponential",
+  },
+});
+```
+
+### Weekly Summaries
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/reports/weekly",
+  method: "POST",
+  cron_expression: "0 9 * * 1", // Monday at 9 AM
+  timezone: "America/New_York",
+  payload: {
+    report_type: "weekly_summary",
+    period: "last_week",
+  },
+});
+```
+
+## Health Checks and Monitoring
+
+Monitor application health and trigger alerts.
+
+### Frequent Health Checks
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/health-check",
+  method: "GET",
+  cron_expression: "*/5 * * * *", // Every 5 minutes
+  retry_config: {
+    maxRetries: 2,
+    backoffMs: 1000,
+    backoffType: "linear",
+  },
+});
+```
+
+### Alert on Failure
+
+```typescript
+// Health check endpoint should trigger alerts if health check fails
+await cuey.repeat({
+  webhook_url: "https://api.example.com/health-check",
+  method: "GET",
+  cron_expression: "*/1 * * * *", // Every minute
+  payload: {
+    alert_on_failure: true,
+    alert_channels: ["slack", "email"],
+  },
+});
+```
+
+## Data Synchronization
+
+Sync data between systems on a schedule.
+
+### Hourly Data Sync
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/sync",
+  method: "POST",
+  cron_expression: "0 * * * *", // Every hour
+  payload: {
+    sync_type: "full",
+    source: "external_api",
+    destination: "database",
+  },
+});
+```
+
+### Incremental Sync
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/sync/incremental",
+  method: "POST",
+  cron_expression: "*/15 * * * *", // Every 15 minutes
+  payload: {
+    sync_type: "incremental",
+    last_sync: null, // Will be tracked by webhook handler
+  },
+});
+```
+
+## Task Scheduling
+
+Schedule background tasks and batch jobs.
+
+### Nightly Batch Processing
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/batch-process",
+  method: "POST",
+  cron_expression: "0 2 * * *", // 2 AM daily
+  timezone: "UTC",
+  payload: {
+    job_type: "data_aggregation",
+    batch_size: 1000,
+  },
+  retry_config: {
+    maxRetries: 5,
+    backoffMs: 5000,
+    backoffType: "exponential",
+  },
+});
+```
+
+### Scheduled Task Cleanup
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/cleanup",
+  method: "POST",
+  cron_expression: "0 3 * * 0", // Sunday at 3 AM
+  payload: {
+    cleanup_type: "old_tasks",
+    retention_days: 30,
+  },
+});
+```
+
+## Event-Driven Workflows
+
+Trigger workflows based on scheduled events.
+
+### Multi-Step Workflow
+
+```typescript
+// Step 1: Initial trigger
+const step1 = await cuey.schedule({
+  webhook_url: "https://api.example.com/workflow/step1",
+  scheduled_at: new Date(Date.now() + 60000).toISOString(), // 1 minute
+  payload: { workflow_id: "workflow-123", step: 1 },
+});
+
+// Step 2: After step 1 completes (webhook handler schedules this)
+const step2 = await cuey.schedule({
+  webhook_url: "https://api.example.com/workflow/step2",
+  scheduled_at: new Date(Date.now() + 120000).toISOString(), // 2 minutes
+  payload: { workflow_id: "workflow-123", step: 2 },
+});
+```
+
+## Email Campaigns
+
+Schedule email sends and campaigns.
+
+### Scheduled Email Send
+
+```typescript
+await cuey.schedule({
+  webhook_url: "https://api.example.com/emails/send",
+  method: "POST",
+  scheduled_at: "2024-12-25T09:00:00Z", // Christmas morning
+  payload: {
+    template_id: "holiday_greeting",
+    recipients: ["user1@example.com", "user2@example.com"],
+    subject: "Happy Holidays!",
+  },
+});
+```
+
+### Newsletter Distribution
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/newsletter",
+  method: "POST",
+  cron_expression: "0 10 * * 5", // Friday at 10 AM
+  timezone: "America/New_York",
+  payload: {
+    newsletter_type: "weekly",
+    segment: "all_subscribers",
+  },
+});
+```
+
+## Payment Processing
+
+Schedule payment-related tasks.
+
+### Recurring Billing
+
+```typescript
+await cuey.repeat({
+  webhook_url: "https://api.example.com/billing/process",
+  method: "POST",
+  cron_expression: "0 0 1 * *", // First day of month at midnight
+  payload: {
+    billing_type: "recurring",
+    plan_type: "subscription",
+  },
+  retry_config: {
+    maxRetries: 5,
+    backoffMs: 10000,
+    backoffType: "exponential",
+  },
+});
+```
+
+### Payment Reminders
+
+```typescript
+// Schedule reminder 3 days before due date
+const dueDate = new Date("2024-12-31");
+const reminderDate = new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000);
+
+await cuey.schedule({
+  webhook_url: "https://api.example.com/billing/reminder",
+  method: "POST",
+  scheduled_at: reminderDate.toISOString(),
+  payload: {
+    invoice_id: "inv-123",
+    due_date: dueDate.toISOString(),
+    amount: 99.99,
+  },
+});
+```
+
+## Integration Patterns
+
+### Webhook Relays
+
+Relay webhooks to multiple endpoints:
+
+```typescript
+const endpoints = [
+  "https://api1.example.com/webhook",
+  "https://api2.example.com/webhook",
+  "https://api3.example.com/webhook",
+];
+
+endpoints.forEach((endpoint) => {
+  cuey.schedule({
+    webhook_url: endpoint,
+    method: "POST",
+    scheduled_at: new Date(Date.now() + 1000).toISOString(),
+    payload: { message: "Broadcast message" },
+  });
+});
+```
+
+### Retry with Custom Logic
+
+```typescript
+async function scheduleWithSmartRetry(webhookUrl: string, payload: any) {
+  await cuey.schedule({
+    webhook_url: webhookUrl,
+    method: "POST",
+    scheduled_at: new Date(Date.now() + 60000).toISOString(),
+    payload: payload,
+    retry_config: {
+      maxRetries: 5,
+      backoffMs: 2000,
+      backoffType: "exponential",
+    },
+  });
+  
+  // Monitor retries
+  const checkRetries = setInterval(async () => {
+    const { data: events } = await cuey.events.list({
+      status: "failed",
+    });
+    
+    // Custom retry logic based on event data
+    events.forEach((event) => {
+      if (event.response_status === 429) {
+        // Rate limited - schedule with longer delay
+        scheduleWithSmartRetry(webhookUrl, payload);
+      }
+    });
+  }, 60000);
+}
+```
+
+## Best Practices
+
+### Use Appropriate Schedules
+
+```typescript
+// ✅ Good: Appropriate frequency
+await cuey.repeat({
+  cron_expression: "0 9 * * *", // Daily is reasonable for reports
+});
+
+// ❌ Avoid: Too frequent for the use case
+await cuey.repeat({
+  cron_expression: "* * * * *", // Every minute for a daily report
+});
+```
+
+### Handle Retries Appropriately
+
+```typescript
+// ✅ Good: More retries for critical operations
+await cuey.schedule({
+  webhook_url: "https://api.example.com/critical-operation",
+  retry_config: {
+    maxRetries: 10,
+    backoffMs: 5000,
+    backoffType: "exponential",
+  },
+});
+
+// ✅ Good: Fewer retries for non-critical operations
+await cuey.schedule({
+  webhook_url: "https://api.example.com/notification",
+  retry_config: {
+    maxRetries: 2,
+    backoffMs: 1000,
+    backoffType: "linear",
+  },
+});
+```
+
+### Monitor and Track
+
+```typescript
+async function monitorScheduledJobs() {
+  const { data: crons } = await cuey.crons.list();
+  
+  for (const cron of crons) {
+    const { data: events } = await cuey.events.list({
+      cron_id: cron.id,
+      status: "failed",
+    });
+    
+    if (events.length > 0) {
+      console.warn(`Cron ${cron.id} has ${events.length} failed events`);
+    }
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get started with Cuey.
+  </Card>
+  <Card
+    title="TypeScript Client"
+    icon="code"
+    href="/typescript-client/overview"
+  >
+    Learn about the TypeScript client.
+  </Card>
+  <Card
+    title="REST API"
+    icon="plug"
+    href="/api-reference/introduction"
+  >
+    Explore the REST API.
+  </Card>
+</CardGroup>
+

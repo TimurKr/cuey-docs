@@ -1,0 +1,167 @@
+---
+title: "Advanced Configuration"
+description: "Advanced configuration options for the Cuey TypeScript client"
+---
+
+## Overview
+
+For most use cases, the default `cuey` instance with environment variables is sufficient. This section covers advanced configuration options, including creating custom instances and using multiple API keys.
+
+## Configuration Options
+
+The `Cuey` class accepts optional configuration options:
+
+<ResponseField name="CueyConfig" type="object">
+  Configuration options for creating a custom Cuey instance.
+
+  <Expandable title="CueyConfig properties">
+    <ResponseField name="apiKey" type="string">
+      API key for authentication. If not provided, the `CUEY_API_KEY` environment variable will be checked.
+    </ResponseField>
+
+    <ResponseField name="baseUrl" type="string">
+      Base URL for resolving relative webhook URLs. If provided, relative webhook URLs will be resolved against this base URL. If not provided, the `CUEY_BASE_URL` environment variable will be checked.
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+## Environment Variables
+
+The SDK supports the following environment variables:
+
+<ResponseField name="CUEY_API_KEY" type="string" required>
+  API key for authentication. Required if not provided in constructor config.
+</ResponseField>
+
+<ResponseField name="CUEY_BASE_URL" type="string">
+  Base URL for resolving relative webhook URLs. Optional. Used when webhook URLs
+  are provided as relative paths (starting with `/`).
+</ResponseField>
+
+## Creating Custom Instances
+
+### Explicit Configuration
+
+Create a custom instance with explicit configuration:
+
+<RequestExample>
+
+```typescript Basic custom instance
+import { Cuey } from "cuey";
+
+const cuey = new Cuey({
+  apiKey: "your-api-key-here",
+  baseUrl: "https://api.example.com",
+});
+
+// Relative URL will be resolved to https://api.example.com/webhook
+await cuey.events.create({
+  webhook_url: "/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+});
+```
+
+```typescript Partial configuration
+import { Cuey } from "cuey";
+
+const cuey = new Cuey({
+  apiKey: "your-api-key-here",
+  // baseUrl will be read from CUEY_BASE_URL env var
+});
+
+// or
+
+const cuey = new Cuey({
+  baseUrl: "https://api.example.com",
+  // apiKey will be read from CUEY_API_KEY env var
+});
+```
+
+</RequestExample>
+
+### Mixed Configuration
+
+You can mix explicit config with environment variables (see examples above).
+
+## Webhook URL Resolution
+
+The `baseUrl` configuration affects how webhook URLs are resolved:
+
+### Full URLs
+
+If you provide a full URL (starting with `http://` or `https://`), `baseUrl` is ignored (see example above).
+
+### Relative URLs
+
+If you provide a relative URL (starting with `/`), it's resolved against `baseUrl` (see example above).
+
+<Warning>
+  If `baseUrl` is not configured and you use a relative URL, an error will be
+  thrown.
+</Warning>
+
+### Base URL Configuration Examples
+
+If most of your webhooks target the same base URL, set `CUEY_BASE_URL` as an environment variable. This lets you use relative paths instead of full URLs.
+
+| `CUEY_BASE_URL`                                    | `webhook_url`                            | Valid | Resolved URL                                                 |
+| -------------------------------------------------- | ---------------------------------------- | ----- | ------------------------------------------------------------ |
+| `https://api.example.com/v1/api`                   | `/webhook`                               | ✅    | `https://api.example.com/v1/api/webhook`                     |
+| `https://api.example.com/v1/api`                   | `/webhook/endpoint`                      | ✅    | `https://api.example.com/v1/api/webhook/endpoint`            |
+| `https://api.example.com/v1/api`                   | `https://api.example.com/v1/api/webhook` | ✅    | `https://api.example.com/v1/api/webhook`                     |
+| `https://api.example.com/v1/api`                   | `https://other-domain.com/webhook`       | ✅    | `https://other-domain.com/webhook`                           |
+| _not set_                                          | `https://api.example.com/webhook`        | ✅    | `https://api.example.com/webhook`                            |
+| `https://api.example.com/v1/api`                   | `webhook` (no leading slash)             | ❌    | Error: relative paths must start with `/`                    |
+| _not set_                                          | `/webhook`                               | ❌    | Error: `CUEY_BASE_URL` must be set when using relative paths |
+| `https://api.example.com/v1/api/` (trailing slash) | `/webhook`                               | ⚠️    | `https://api.example.com/v1/api//webhook` (double slash)     |
+
+## API Key Resolution
+
+The API key is resolved in the following order:
+
+1. Explicit `apiKey` in constructor config
+2. `CUEY_API_KEY` environment variable
+3. Error thrown if neither is provided
+
+<Warning>
+  If neither `apiKey` nor `CUEY_API_KEY` is set, creating a client instance will
+  throw an error.
+</Warning>
+
+## Use Cases
+
+### Multiple API Keys
+
+Create multiple instances with different API keys (see example above).
+
+### Environment-Specific Configuration
+
+Use different configurations for different environments (see example above).
+
+### Using dotenv
+
+Load environment variables from a `.env` file (see example above).
+
+<Warning>
+  Never commit `.env` files containing API keys to version control.
+</Warning>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card
+    title="Error Handling"
+    icon="exclamation-triangle"
+    href="/typescript-client/error-handling"
+  >
+    Understand error handling patterns.
+  </Card>
+  <Card
+    title="Types Reference"
+    icon="book"
+    href="/typescript-client/types-reference"
+  >
+    See all available TypeScript types.
+  </Card>
+</CardGroup>

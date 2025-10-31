@@ -1,0 +1,91 @@
+---
+title: "Overview"
+description: "Introduction to the Cuey TypeScript client"
+---
+
+## Introduction
+
+The Cuey TypeScript client provides a type-safe, object-based interface for interacting with the Cuey REST API. It handles authentication, request formatting, error handling, and provides full TypeScript type definitions.
+
+## Features
+
+- **Type-safe**: Full TypeScript support with comprehensive type definitions
+- **Easy to use**: Simple API with intuitive method names
+- **Environment-based**: Configure using environment variables
+- **Error handling**: Typed error classes for different error scenarios
+- **Resource-based**: Organized into `crons` and `events` resources
+
+## Basic Usage
+
+### Environment Variables
+
+Before using the client, set the required environment variable:
+
+```bash
+export CUEY_API_KEY="your-api-key-here"
+```
+
+Optionally, you can also set a base URL for resolving relative webhook URLs:
+
+```bash
+export CUEY_BASE_URL="https://api.example.com"
+```
+
+### Using the Client
+
+Import and use the default `cuey` instance:
+
+```typescript
+import { cuey } from "cuey";
+
+// The client automatically reads CUEY_API_KEY from environment variables
+const event = await cuey.events.create({
+  webhook_url: "https://api.example.com/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+  payload: { message: "Hello!" },
+});
+```
+
+<Info>
+For advanced configuration options, including using multiple API keys or custom instances, see the [Advanced Configuration](/typescript-client/advanced-configuration) section.
+</Info>
+
+## Client Structure
+
+The `cuey` instance provides resource objects for managing events and cron jobs:
+
+```typescript
+// Access events resource
+const { data: events } = await cuey.events.list();
+const event = await cuey.events.get("event-id");
+const newEvent = await cuey.events.create({ ... });
+await cuey.events.update("event-id", { ... });
+await cuey.events.delete("event-id");
+
+// Access crons resource
+const { data: crons } = await cuey.crons.list();
+const cron = await cuey.crons.get("cron-id");
+const newCron = await cuey.crons.create({ ... });
+await cuey.crons.update("cron-id", { ... });
+await cuey.crons.delete("cron-id");
+```
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card
+    title="Events"
+    icon="calendar"
+    href="/typescript-client/events"
+  >
+    Complete reference for managing scheduled events.
+  </Card>
+  <Card
+    title="Crons"
+    icon="refresh"
+    href="/typescript-client/crons"
+  >
+    Complete reference for managing cron jobs.
+  </Card>
+</CardGroup>
+

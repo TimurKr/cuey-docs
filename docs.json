@@ -1,0 +1,177 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Cuey",
+  "colors": {
+    "primary": "#18181b",
+    "light": "#71717a",
+    "dark": "#09090b"
+  },
+  "favicon": "/logo/light.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "index",
+              "building-blocks",
+              "retrying-events",
+              "installation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "TypeScript Client",
+        "groups": [
+          {
+            "group": "TypeScript Client",
+            "pages": [
+              "typescript-client/overview",
+              "typescript-client/quickstart",
+              {
+                "group": "Events",
+                "pages": [
+                  "typescript-client/events",
+                  "typescript-client/events/list",
+                  "typescript-client/events/get",
+                  "typescript-client/events/create",
+                  "typescript-client/events/update",
+                  "typescript-client/events/delete"
+                ],
+                "expanded": false
+              },
+              {
+                "group": "Crons",
+                "pages": [
+                  "typescript-client/crons",
+                  "typescript-client/crons/list",
+                  "typescript-client/crons/get",
+                  "typescript-client/crons/create",
+                  "typescript-client/crons/update",
+                  "typescript-client/crons/delete"
+                ],
+                "expanded": false
+              }
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "typescript-client/advanced-configuration",
+              "typescript-client/error-handling",
+              "typescript-client/types-reference"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "REST API",
+        "groups": [
+          {
+            "group": "REST API",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/authentication",
+              {
+                "group": "Events",
+                "pages": [
+                  "api-reference/events",
+                  "api-reference/events/list",
+                  "api-reference/events/create",
+                  "api-reference/events/get",
+                  "api-reference/events/update",
+                  "api-reference/events/delete"
+                ]
+              },
+              {
+                "group": "Crons",
+                "pages": [
+                  "api-reference/crons",
+                  "api-reference/crons/list",
+                  "api-reference/crons/create",
+                  "api-reference/crons/get",
+                  "api-reference/crons/update",
+                  "api-reference/crons/delete"
+                ]
+              },
+              "api-reference/errors"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/cron-expressions",
+              "guides/retry-configuration",
+              "guides/webhook-urls",
+              "guides/common-use-cases"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/TimurKr/cuey-ts",
+          "icon": "github"
+        },
+        {
+          "anchor": "Dashboard",
+          "href": "https://cuey.dev/dashboard",
+          "icon": "/logo/light.svg"
+        }
+      ]
+    }
+  },
+  "logo": "/logo/light.svg",
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:timur@joul.app"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://cuey.dev/dashboard"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/TimurKr/cuey-ts"
+    }
+  },
+  "api": {
+    "openapi": "api-reference/openapi.json",
+    "playground": {
+      "display": "interactive"
+    },
+    "auth": {
+      "method": "bearer",
+      "type": "http"
+    }
+  }
+}

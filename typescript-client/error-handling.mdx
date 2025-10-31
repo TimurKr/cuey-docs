@@ -1,0 +1,488 @@
+---
+title: "Error Handling"
+description: "Handle errors in the Cuey TypeScript client"
+---
+
+## Overview
+
+The Cuey TypeScript client provides typed error classes for different error scenarios. All errors extend from `CueyError` and include status codes and error details.
+
+## Error Classes
+
+### CueyError
+
+Base error class for all Cuey API errors.
+
+<ResponseField name="CueyError" type="class">
+  Base error class extending JavaScript's `Error`.
+
+  <Expandable title="CueyError properties">
+    <ResponseField name="code" type="CueyErrorCode" required>
+      Error code identifying the type of error.
+    </ResponseField>
+
+    <ResponseField name="statusCode" type="number" required>
+      HTTP status code associated with the error.
+    </ResponseField>
+
+    <ResponseField name="details" type="unknown">
+      Additional error details, if available.
+    </ResponseField>
+
+    <ResponseField name="message" type="string" required>
+      Human-readable error message (inherited from `Error`).
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+### UnauthorizedError (401)
+
+Thrown when the API key is invalid or missing.
+
+<ResponseField name="UnauthorizedError" type="class">
+  Extends `CueyError`. Thrown when authentication fails.
+
+  <Expandable title="UnauthorizedError properties">
+    <ResponseField name="code" type="string" required>
+      Always `"UNAUTHORIZED"`.
+    </ResponseField>
+
+    <ResponseField name="statusCode" type="number" required>
+      Always `401`.
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+### NotFoundError (404)
+
+Thrown when a requested resource doesn't exist.
+
+<ResponseField name="NotFoundError" type="class">
+  Extends `CueyError`. Thrown when a resource is not found.
+
+  <Expandable title="NotFoundError properties">
+    <ResponseField name="code" type="string" required>
+      Always `"NOT_FOUND"`.
+    </ResponseField>
+
+    <ResponseField name="statusCode" type="number" required>
+      Always `404`.
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+### BadRequestError (400)
+
+Thrown when the request is invalid (e.g., trying to update a non-pending event).
+
+<ResponseField name="BadRequestError" type="class">
+  Extends `CueyError`. Thrown when the request is invalid.
+
+  <Expandable title="BadRequestError properties">
+    <ResponseField name="code" type="string" required>
+      Always `"BAD_REQUEST"`.
+    </ResponseField>
+
+    <ResponseField name="statusCode" type="number" required>
+      Always `400`.
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+### ValidationError (400)
+
+Thrown when request validation fails. Includes detailed validation errors.
+
+<ResponseField name="ValidationError" type="class">
+  Extends `CueyError`. Thrown when request validation fails.
+
+  <Expandable title="ValidationError properties">
+    <ResponseField name="code" type="string" required>
+      Always `"VALIDATION_ERROR"`.
+    </ResponseField>
+
+    <ResponseField name="statusCode" type="number" required>
+      Always `400`.
+    </ResponseField>
+
+    <ResponseField name="validationErrors" type="unknown" required>
+      Detailed validation errors array. Each error includes a `path` and `message`.
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+### InternalServerError (500+)
+
+Thrown when a server error occurs (e.g., requesting an out-of-range page).
+
+<ResponseField name="InternalServerError" type="class">
+  Extends `CueyError`. Thrown when a server error occurs.
+
+  <Expandable title="InternalServerError properties">
+    <ResponseField name="code" type="string" required>
+      Always `"INTERNAL_SERVER_ERROR"`.
+    </ResponseField>
+
+    <ResponseField name="statusCode" type="number" required>
+      HTTP status code `500` or higher.
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+## Error Codes
+
+<ResponseField name="CueyErrorCode" type="union">
+  Union type of all possible error codes.
+
+  <Expandable title="Error code values">
+    <ResponseField name="UNAUTHORIZED" type="string">
+      Authentication failed or API key is invalid/missing.
+    </ResponseField>
+
+    <ResponseField name="NOT_FOUND" type="string">
+      Requested resource does not exist.
+    </ResponseField>
+
+    <ResponseField name="BAD_REQUEST" type="string">
+      Request is invalid (e.g., trying to update a non-pending event).
+    </ResponseField>
+
+    <ResponseField name="VALIDATION_ERROR" type="string">
+      Request validation failed (e.g., invalid cron expression, past scheduled time).
+    </ResponseField>
+
+    <ResponseField name="INTERNAL_SERVER_ERROR" type="string">
+      Server error occurred (e.g., out-of-range pagination).
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+## Basic Error Handling
+
+### Try-Catch Pattern
+
+```typescript
+import {
+  CueyError,
+  UnauthorizedError,
+  NotFoundError,
+  ValidationError,
+  BadRequestError,
+  InternalServerError,
+} from "cuey";
+
+try {
+  const cron = await cuey.crons.get("invalid-id");
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    console.error("Cron not found:", error.message);
+  } else if (error instanceof UnauthorizedError) {
+    console.error("Authentication failed:", error.message);
+  } else if (error instanceof CueyError) {
+    console.error("API error:", error.code, error.message);
+  } else {
+    console.error("Unknown error:", error);
+  }
+}
+```
+
+### Handling Validation Errors
+
+Validation errors include detailed information about what failed:
+
+```typescript
+import { ValidationError } from "cuey";
+
+try {
+  const event = await cuey.events.create({
+    webhook_url: "invalid-url", // Invalid URL
+    scheduled_at: "2020-01-01T00:00:00Z", // In the past
+    method: "INVALID", // Invalid method
+  });
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error("Validation failed:", error.message);
+    console.error("Validation errors:", error.validationErrors);
+    // Example output:
+    // [
+    //   { path: ["webhook_url"], message: "Invalid URL" },
+    //   { path: ["scheduled_at"], message: "Must be in the future" },
+    //   { path: ["method"], message: "Invalid HTTP method" }
+    // ]
+  }
+}
+```
+
+## Common Error Scenarios
+
+### Invalid API Key
+
+```typescript
+import { UnauthorizedError } from "cuey";
+
+try {
+  const cuey = new Cuey({ apiKey: "invalid-key" });
+  await cuey.crons.list();
+} catch (error) {
+  if (error instanceof UnauthorizedError) {
+    console.error("Invalid API key. Please check your credentials.");
+  }
+}
+```
+
+### Resource Not Found
+
+```typescript
+import { NotFoundError } from "cuey";
+
+try {
+  const cron = await cuey.crons.get("non-existent-id");
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    console.error("Cron job not found");
+    // Handle: show user-friendly message, redirect, etc.
+  }
+}
+```
+
+### Invalid Request Data
+
+```typescript
+import { ValidationError, BadRequestError } from "cuey";
+
+try {
+  const event = await cuey.events.create({
+    webhook_url: "https://api.example.com/webhook",
+    scheduled_at: "2020-01-01T00:00:00Z", // In the past
+  });
+} catch (error) {
+  if (error instanceof ValidationError) {
+    // Handle validation errors
+    console.error("Invalid input:", error.validationErrors);
+  } else if (error instanceof BadRequestError) {
+    // Handle other bad request errors
+    console.error("Bad request:", error.message);
+  }
+}
+```
+
+### Updating Non-Pending Event
+
+```typescript
+import { BadRequestError } from "cuey";
+
+try {
+  // Try to update an event that's already executed
+  await cuey.events.update("event-id", {
+    webhook_url: "https://api.example.com/webhook",
+    scheduled_at: "2025-01-01T00:00:00Z",
+  });
+} catch (error) {
+  if (error instanceof BadRequestError) {
+    console.error("Cannot update:", error.message);
+    // Error message: "Only pending events can be updated"
+  }
+}
+```
+
+### Out of Range Pagination
+
+```typescript
+import { InternalServerError } from "cuey";
+
+try {
+  // Request page 1000 when only 10 pages exist
+  await cuey.crons.list({ page: 1000 });
+} catch (error) {
+  if (error instanceof InternalServerError) {
+    console.error("Page out of range");
+    // Handle: reset to page 0, show error message, etc.
+  }
+}
+```
+
+## Error Handling Utilities
+
+### Generic Error Handler
+
+```typescript
+import { CueyError } from "cuey";
+
+function handleCueyError(error: unknown): void {
+  if (error instanceof CueyError) {
+    switch (error.code) {
+      case "UNAUTHORIZED":
+        console.error("Authentication failed. Please check your API key.");
+        break;
+      case "NOT_FOUND":
+        console.error("Resource not found.");
+        break;
+      case "VALIDATION_ERROR":
+        console.error("Validation failed:", error.validationErrors);
+        break;
+      case "BAD_REQUEST":
+        console.error("Invalid request:", error.message);
+        break;
+      case "INTERNAL_SERVER_ERROR":
+        console.error("Server error:", error.message);
+        break;
+    }
+  } else {
+    console.error("Unknown error:", error);
+  }
+}
+
+try {
+  await cuey.crons.list();
+} catch (error) {
+  handleCueyError(error);
+}
+```
+
+### Retry on Specific Errors
+
+```typescript
+import { InternalServerError } from "cuey";
+
+async function retryOnServerError<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3
+): Promise<T> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error instanceof InternalServerError && i < maxRetries - 1) {
+        console.log(`Retry ${i + 1}/${maxRetries}...`);
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+
+// Usage
+const crons = await retryOnServerError(() => cuey.crons.list());
+```
+
+### Error Type Guards
+
+```typescript
+import { CueyError, ValidationError } from "cuey";
+
+function isCueyError(error: unknown): error is CueyError {
+  return error instanceof CueyError;
+}
+
+function isValidationError(error: unknown): error is ValidationError {
+  return error instanceof ValidationError;
+}
+
+// Usage
+try {
+  await cuey.events.create({ ... });
+} catch (error) {
+  if (isValidationError(error)) {
+    // Handle validation errors specifically
+    console.error("Validation failed:", error.validationErrors);
+  } else if (isCueyError(error)) {
+    // Handle other Cuey errors
+    console.error("Cuey error:", error.code, error.message);
+  } else {
+    // Handle unknown errors
+    console.error("Unknown error:", error);
+  }
+}
+```
+
+## Best Practices
+
+### Always Handle Errors
+
+```typescript
+import { NotFoundError } from "cuey";
+
+// ❌ Bad: Unhandled errors
+const cron = await cuey.crons.get("id");
+
+// ✅ Good: Proper error handling
+try {
+  const cron = await cuey.crons.get("id");
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    // Handle not found
+  } else {
+    // Handle other errors
+  }
+}
+```
+
+### Provide User-Friendly Messages
+
+```typescript
+import { ValidationError, UnauthorizedError } from "cuey";
+
+try {
+  await cuey.events.create({ ... });
+} catch (error) {
+  if (error instanceof ValidationError) {
+    // Extract user-friendly messages from validation errors
+    const messages = (error.validationErrors as Array<{ message: string }>)
+      .map((e) => e.message)
+      .join(", ");
+    showError(`Please fix the following: ${messages}`);
+  } else if (error instanceof UnauthorizedError) {
+    showError("Please check your API key in settings.");
+  } else {
+    showError("An unexpected error occurred. Please try again.");
+  }
+}
+```
+
+## Importing Error Classes
+
+```typescript
+import {
+  CueyError,
+  UnauthorizedError,
+  NotFoundError,
+  BadRequestError,
+  ValidationError,
+  InternalServerError,
+} from "cuey";
+```
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card
+    title="Types Reference"
+    icon="book"
+    href="/typescript-client/types-reference"
+  >
+    See all available types.
+  </Card>
+  <Card
+    title="Advanced Configuration"
+    icon="gear"
+    href="/typescript-client/advanced-configuration"
+  >
+    Learn about advanced configuration options.
+  </Card>
+  <Card
+    title="REST API Errors"
+    icon="exclamation-triangle"
+    href="/api-reference/errors"
+  >
+    See REST API error responses.
+  </Card>
+</CardGroup>

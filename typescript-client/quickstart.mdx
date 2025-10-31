@@ -1,0 +1,71 @@
+---
+title: "Quick Start"
+description: "Get started with Cuey in minutes"
+---
+
+## Install
+
+Install the Cuey client:
+
+<CodeGroup>
+
+```bash npm
+npm install cuey
+```
+
+```bash yarn
+yarn add cuey
+```
+
+```bash pnpm
+pnpm add cuey
+```
+
+```bash bun
+bun add cuey
+```
+
+</CodeGroup>
+
+## Configure Your Environment Variables
+
+- Set `CUEY_API_KEY` with your API key from the [dashboard](https://cuey.dev/dashboard) (required)
+- Set `CUEY_BASE_URL` to use relative webhook URLs (optional)
+
+## Schedule Your First Webhook
+
+```typescript
+import { cuey } from "cuey";
+
+// Schedule a one-time webhook
+const event = await cuey.schedule({
+  webhook_url: "/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+  payload: {
+    message: "Happy New Year from Cuey!",
+  },
+});
+
+console.log("Event scheduled:", event.id);
+```
+
+<Info>
+  The `cuey` instance automatically reads the `CUEY_API_KEY` environment
+  variable for authentication and `CUEY_BASE_URL` for resolving relative webhook
+  URLs.
+</Info>
+
+## Create a Recurring Webhook
+
+```typescript
+import { cuey } from "cuey";
+
+const cron = await cuey.repeat({
+  webhook_url: "https://api.example.com/daily-report",
+  cron_expression: "0 9 * * *", // Daily at 9 AM
+  timezone: "America/New_York",
+  payload: {
+    report_type: "daily",
+  },
+});
+```

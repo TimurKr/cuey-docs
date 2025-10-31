@@ -1,0 +1,97 @@
+---
+title: "Events"
+description: "Manage scheduled events with the TypeScript client"
+---
+
+## Overview
+
+The `events` resource provides methods for managing one-time scheduled events. Access it via `client.events` or use the default `cuey` instance.
+
+## Quick Start
+
+```typescript
+import { cuey } from "cuey";
+
+// List all events
+const { data: events } = await cuey.events.list();
+
+// Get a specific event
+const event = await cuey.events.get("event-id");
+
+// Create a new event
+const newEvent = await cuey.events.create({
+  webhook_url: "https://api.example.com/webhook",
+  scheduled_at: "2024-12-31T23:59:59Z",
+  payload: { message: "Hello!" },
+});
+```
+
+## Methods
+
+<CardGroup cols={2}>
+  <Card title="List Events" icon="list" href="/typescript-client/events/list">
+    List all events with optional pagination and filters
+  </Card>
+  <Card title="Get Event" icon="eye" href="/typescript-client/events/get">
+    Retrieve a single event by ID
+  </Card>
+  <Card
+    title="Create Event"
+    icon="plus"
+    href="/typescript-client/events/create"
+  >
+    Schedule a new one-time event
+  </Card>
+  <Card
+    title="Update Event"
+    icon="pencil"
+    href="/typescript-client/events/update"
+  >
+    Update an existing pending event
+  </Card>
+  <Card
+    title="Delete Event"
+    icon="trash"
+    href="/typescript-client/events/delete"
+  >
+    Delete a pending event
+  </Card>
+</CardGroup>
+
+## Event Status
+
+Events can have the following statuses:
+
+- **pending**: Event is scheduled but not yet executed
+- **processing**: Event is currently being executed
+- **success**: Event executed successfully
+- **failed**: Event execution failed (after all retries)
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Crons" icon="refresh" href="/typescript-client/crons">
+    Learn about managing recurring cron jobs
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="exclamation-triangle"
+    href="/typescript-client/error-handling"
+  >
+    Understand error handling patterns
+  </Card>
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/typescript-client/configuration"
+  >
+    Configure the client
+  </Card>
+  <Card
+    title="Common Use Cases"
+    icon="lightbulb"
+    href="/guides/common-use-cases"
+  >
+    See real-world examples
+  </Card>
+</CardGroup>

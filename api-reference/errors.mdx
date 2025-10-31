@@ -1,0 +1,308 @@
+---
+title: "Errors"
+description: "Error responses and error codes"
+---
+
+## Overview
+
+The Cuey API uses standard HTTP status codes and returns error responses in a consistent format.
+
+## Error Response Format
+
+All error responses follow this structure:
+
+```json
+{
+  "error": {
+    "message": "Human-readable error message",
+    "code": "ERROR_CODE",
+    "details": {}
+  }
+}
+```
+
+## HTTP Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | OK - Request succeeded |
+| `201` | Created - Resource created successfully |
+| `400` | Bad Request - Invalid request data |
+| `401` | Unauthorized - Invalid or missing API key |
+| `404` | Not Found - Resource not found |
+| `500` | Internal Server Error - Server error |
+
+## Error Codes
+
+### UNAUTHORIZED
+
+Returned when the API key is invalid or missing.
+
+**Status Code:** `401`
+
+**Example Response:**
+
+```json
+{
+  "error": {
+    "message": "Unauthorized. Invalid or missing API key.",
+    "code": "UNAUTHORIZED"
+  }
+}
+```
+
+**Common Causes:**
+
+- Missing `Authorization` header
+- Invalid API key
+- Expired or revoked API key
+
+### NOT_FOUND
+
+Returned when a requested resource doesn't exist.
+
+**Status Code:** `404`
+
+**Example Response:**
+
+```json
+{
+  "error": {
+    "message": "Resource not found.",
+    "code": "NOT_FOUND"
+  }
+}
+```
+
+**Common Causes:**
+
+- Invalid resource ID
+- Resource belongs to another team
+- Resource was deleted
+
+### VALIDATION_ERROR
+
+Returned when request validation fails.
+
+**Status Code:** `400`
+
+**Example Response:**
+
+```json
+{
+  "error": {
+    "message": "Invalid request body",
+    "code": "VALIDATION_ERROR",
+    "details": [
+      {
+        "path": ["webhook_url"],
+        "message": "Invalid URL"
+      },
+      {
+        "path": ["scheduled_at"],
+        "message": "Must be in the future"
+      }
+    ]
+  }
+}
+```
+
+**Common Causes:**
+
+- Invalid field values
+- Missing required fields
+- Invalid data types
+- Validation rule violations
+
+### BAD_REQUEST
+
+Returned when the request is invalid (e.g., business logic violations).
+
+**Status Code:** `400`
+
+**Example Response:**
+
+```json
+{
+  "error": {
+    "message": "Only pending events can be updated",
+    "code": "BAD_REQUEST",
+    "details": {
+      "currentStatus": "success"
+    }
+  }
+}
+```
+
+**Common Causes:**
+
+- Trying to update a non-pending event
+- Trying to delete an event created by a cron
+- Requesting an out-of-range page number
+
+### INTERNAL_SERVER_ERROR
+
+Returned when a server error occurs.
+
+**Status Code:** `500`
+
+**Example Response:**
+
+```json
+{
+  "error": {
+    "message": "An internal server error occurred.",
+    "code": "INTERNAL_SERVER_ERROR"
+  }
+}
+```
+
+**Common Causes:**
+
+- Database errors
+- Requesting an out-of-range page number
+- Unexpected server failures
+
+## Handling Errors
+
+### Example: Handling Validation Errors
+
+```javascript
+try {
+  const response = await fetch("https://cuey.dev/api/v1/events", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      webhook_url: "invalid-url",
+      scheduled_at: "2020-01-01T00:00:00Z",
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    if (error.error.code === "VALIDATION_ERROR") {
+      // Handle validation errors
+      error.error.details.forEach((detail) => {
+        console.error(`${detail.path.join(".")}: ${detail.message}`);
+      });
+    }
+  }
+} catch (error) {
+  console.error("Request failed:", error);
+}
+```
+
+### Example: Handling Unauthorized Errors
+
+```python
+import requests
+
+try:
+    response = requests.get(
+        "https://cuey.dev/api/v1/crons",
+        headers={"Authorization": f"Bearer {api_key}"}
+    )
+    
+    if response.status_code == 401:
+        error = response.json()
+        if error["error"]["code"] == "UNAUTHORIZED":
+            print("Invalid API key. Please check your credentials.")
+except requests.exceptions.RequestException as e:
+    print(f"Request failed: {e}")
+```
+
+### Example: Handling Not Found Errors
+
+```bash
+# Using cURL
+response=$(curl -s -w "\n%{http_code}" \
+  -H "Authorization: Bearer $API_KEY" \
+  https://cuey.dev/api/v1/events/invalid-id)
+
+http_code=$(echo "$response" | tail -n1)
+body=$(echo "$response" | head -n-1)
+
+if [ "$http_code" = "404" ]; then
+  echo "Event not found"
+fi
+```
+
+## Best Practices
+
+### Always Check Status Codes
+
+```javascript
+const response = await fetch(url, options);
+
+if (!response.ok) {
+  const error = await response.json();
+  // Handle error based on error.error.code
+}
+```
+
+### Provide User-Friendly Messages
+
+```javascript
+function getErrorMessage(error) {
+  switch (error.error.code) {
+    case "UNAUTHORIZED":
+      return "Please check your API key in settings.";
+    case "NOT_FOUND":
+      return "Resource not found. It may have been deleted.";
+    case "VALIDATION_ERROR":
+      return "Please check your input and try again.";
+    case "BAD_REQUEST":
+      return error.error.message;
+    default:
+      return "An unexpected error occurred. Please try Jagain.";
+  }
+}
+```
+
+### Retry on Server Errors
+
+```javascript
+async function retryOnServerError(fn, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error.error?.code === "INTERNAL_SERVER_ERROR" && i < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/api-reference/authentication"
+  >
+    Learn about API authentication.
+  </Card>
+  <Card
+    title="Events Endpoints"
+    icon="calendar"
+    href="/api-reference/events"
+  >
+    Explore event endpoints.
+  </Card>
+  <Card
+    title="Crons Endpoints"
+    icon="refresh"
+    href="/api-reference/crons"
+  >
+    Explore cron endpoints.
+  </Card>
+</CardGroup>
+

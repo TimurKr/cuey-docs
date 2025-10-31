@@ -1,0 +1,45 @@
+---
+title: "Authentication"
+description: "Authenticate requests to the Cuey API"
+---
+
+## Getting an API Key
+
+1. Create an account at [cuey.dev/dashboard](https://cuey.dev/dashboard)
+2. Go to team settings
+3. Generate an API key
+
+<Warning>
+Never commit your API key to version control. Use environment variables.
+</Warning>
+
+## Using the API Key
+
+Include your API key in the `Authorization` header:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+```bash
+curl -X GET https://cuey.dev/api/v1/crons \
+  -H "Authorization: Bearer your-api-key-here"
+```
+
+## Invalid API Key
+
+Invalid or missing API keys return `401 Unauthorized`:
+
+```json
+{
+  "error": {
+    "message": "Unauthorized. Invalid or missing API key.",
+    "code": "UNAUTHORIZED"
+  }
+}
+```
+
+## Team Isolation
+
+API keys are scoped to teams. You can only access resources belonging to your team.
+

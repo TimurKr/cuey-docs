@@ -1,0 +1,66 @@
+---
+title: "Crons"
+description: "Manage recurring cron jobs with the TypeScript client"
+---
+
+## Overview
+
+The `crons` resource provides methods for managing recurring cron jobs. Access it via `client.crons` or use the default `cuey` instance.
+
+## Quick Start
+
+```typescript
+import { cuey } from "cuey";
+
+// List all crons
+const { data: crons } = await cuey.crons.list();
+
+// Get a specific cron
+const cron = await cuey.crons.get("cron-id");
+
+// Create a new cron job
+const newCron = await cuey.crons.create({
+  webhook_url: "https://api.example.com/webhook",
+  cron_expression: "0 9 * * *", // Daily at 9 AM
+  timezone: "America/New_York",
+  payload: { report_type: "daily" },
+});
+```
+
+## Methods
+
+<CardGroup cols={2}>
+  <Card title="List Crons" icon="list" href="/typescript-client/crons/list">
+    List all cron jobs with optional pagination and filters
+  </Card>
+  <Card title="Get Cron" icon="eye" href="/typescript-client/crons/get">
+    Retrieve a single cron job by ID
+  </Card>
+  <Card title="Create Cron" icon="plus" href="/typescript-client/crons/create">
+    Create a new recurring cron job
+  </Card>
+  <Card title="Update Cron" icon="pencil" href="/typescript-client/crons/update">
+    Update an existing cron job
+  </Card>
+  <Card title="Delete Cron" icon="trash" href="/typescript-client/crons/delete">
+    Delete a cron job
+  </Card>
+</CardGroup>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Events" icon="calendar" href="/typescript-client/events">
+    Learn about managing scheduled events
+  </Card>
+  <Card title="Cron Expressions Guide" icon="clock" href="/guides/cron-expressions">
+    Learn more about cron expressions
+  </Card>
+  <Card title="Error Handling" icon="exclamation-triangle" href="/typescript-client/error-handling">
+    Understand error handling patterns
+  </Card>
+  <Card title="Configuration" icon="gear" href="/typescript-client/configuration">
+    Configure the client
+  </Card>
+</CardGroup>
+

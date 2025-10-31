@@ -1,0 +1,82 @@
+---
+title: "Delete Event"
+description: "Delete a pending event"
+---
+
+## Overview
+
+Delete an event. Only pending events that were created manually (not by cron jobs) can be deleted.
+
+<RequestExample>
+
+```typescript Delete event
+import { cuey } from "cuey";
+
+await cuey.events.delete("event-id");
+```
+
+</RequestExample>
+
+## Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the event to delete.
+</ParamField>
+
+## Response
+
+Returns `void` on success. No response body is returned.
+
+<ResponseExample>
+
+```typescript Success
+// Method returns void, no response body
+```
+
+</ResponseExample>
+
+## Errors
+
+<Warning>
+Only pending events that were created manually (not by cron jobs) can be deleted. Events created by cron jobs cannot be deleted individually.
+</Warning>
+
+- `NotFoundError`: If the event doesn't exist
+- `BadRequestError`: If the event cannot be deleted (e.g., created by cron, not pending)
+- `UnauthorizedError`: If API key is invalid or missing
+
+## Examples
+
+### Delete a Pending Event
+
+```typescript
+import { cuey } from "cuey";
+
+const event = await cuey.events.get("event-id");
+
+if (event.status === "pending" && !event.cron_id) {
+  await cuey.events.delete(event.id);
+  console.log("Event deleted successfully");
+}
+```
+
+### Safe Delete with Error Handling
+
+```typescript
+import { cuey } from "cuey";
+import { NotFoundError, BadRequestError } from "cuey";
+
+try {
+  await cuey.events.delete("event-id");
+  console.log("Event deleted successfully");
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    console.error("Event not found");
+  } else if (error instanceof BadRequestError) {
+    console.error("Cannot delete event:", error.message);
+  } else {
+    console.error("Error deleting event:", error);
+  }
+}
+```
+

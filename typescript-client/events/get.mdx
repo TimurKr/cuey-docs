@@ -1,0 +1,196 @@
+---
+title: "Get Event"
+description: "Retrieve a single event by ID"
+---
+
+## Overview
+
+Get a single event by its unique identifier.
+
+<RequestExample>
+
+```typescript Get event by ID
+import { cuey } from "cuey";
+
+const event = await cuey.events.get("event-uuid-here");
+```
+
+</RequestExample>
+
+## Parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the event to retrieve.
+</ParamField>
+
+## Response
+
+<ResponseField name="event" type="Event" required>
+  The event object.
+
+  <Expandable title="Event properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier for the event (UUID).
+    </ResponseField>
+
+    <ResponseField name="cron_id" type="string | null">
+      Parent cron ID if this event was created by a cron job. `null` if created manually.
+    </ResponseField>
+
+    <ResponseField name="retry_of" type="string | null">
+      Original event ID if this is a retry attempt. `null` for original events.
+    </ResponseField>
+
+    <ResponseField name="scheduled_at" type="string" required>
+      ISO 8601 timestamp when the event is scheduled to execute.
+    </ResponseField>
+
+    <ResponseField name="executed_at" type="string | null">
+      ISO 8601 timestamp when the event was executed. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="status" type="EventStatus" required>
+      Current status of the event. Values: `pending`, `processing`, `success`, `failed`.
+    </ResponseField>
+
+    <ResponseField name="webhook_url" type="string" required>
+      The webhook URL that will be called.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod" required>
+      HTTP method used for the webhook request. Defaults to `POST`.
+    </ResponseField>
+
+    <ResponseField name="headers" type="object | null">
+      Custom headers to include in the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="payload" type="object | null">
+      Payload to send with the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="retry_config" type="object | null">
+      Retry configuration for failed webhooks.
+
+      <Expandable title="RetryConfig properties">
+        <ResponseField name="maxRetries" type="number" required>
+          Maximum number of retry attempts (1-10).
+        </ResponseField>
+
+        <ResponseField name="backoffMs" type="number" required>
+          Backoff delay in milliseconds (100-5000).
+        </ResponseField>
+
+        <ResponseField name="backoffType" type="string" required>
+          Backoff strategy. Values: `exponential`, `linear`.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+
+    <ResponseField name="response_status" type="number | null">
+      HTTP status code from the webhook response. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_headers" type="object | null">
+      Response headers from the webhook. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_body" type="string | null">
+      Response body from the webhook (truncated to 1KB). `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_duration" type="number | null">
+      Duration of the webhook request in milliseconds. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_error" type="string | null">
+      Error message if the webhook execution failed. `null` if successful or not yet executed.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string | null">
+      ISO 8601 timestamp when the event was created.
+    </ResponseField>
+
+    <ResponseField name="updated_at" type="string | null">
+      ISO 8601 timestamp when the event was last updated.
+    </ResponseField>
+
+    <ResponseField name="team_id" type="string | null">
+      Team ID associated with the event.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+
+```json Success response
+{
+  "id": "event-uuid-here",
+  "cron_id": null,
+  "retry_of": null,
+  "scheduled_at": "2024-12-31T23:59:59Z",
+  "executed_at": "2024-12-31T23:59:59Z",
+  "status": "success",
+  "webhook_url": "https://api.example.com/webhook",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer token"
+  },
+  "payload": {
+    "message": "Hello, Cuey!"
+  },
+  "retry_config": {
+    "maxRetries": 3,
+    "backoffMs": 1000,
+    "backoffType": "exponential"
+  },
+  "response_status": 200,
+  "response_headers": {
+    "content-type": "application/json"
+  },
+  "response_body": "{\"success\": true}",
+  "response_duration": 150,
+  "response_error": null,
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-12-31T23:59:59Z",
+  "team_id": "team-uuid-here"
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+- `NotFoundError`: If the event doesn't exist
+- `UnauthorizedError`: If API key is invalid or missing
+
+## Examples
+
+### Check Event Status
+
+```typescript
+import { cuey } from "cuey";
+
+const event = await cuey.events.get("event-uuid-here");
+
+console.log("Status:", event.status);
+console.log("Scheduled at:", event.scheduled_at);
+console.log("Executed at:", event.executed_at);
+```
+
+### Monitor Event Execution Results
+
+```typescript
+import { cuey } from "cuey";
+
+const event = await cuey.events.get("event-uuid-here");
+
+if (event.status === "success") {
+  console.log("Event executed successfully");
+  console.log("Response status:", event.response_status);
+  console.log("Duration:", event.response_duration, "ms");
+} else if (event.status === "failed") {
+  console.log("Event failed:", event.response_error);
+}
+```
+

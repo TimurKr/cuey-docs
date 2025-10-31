@@ -1,0 +1,130 @@
+---
+title: "Error Handling"
+description: "What happens when webhook delivery fails"
+---
+
+## Overview
+
+When a webhook delivery fails, Cuey implements a robust retry mechanism to ensure reliable delivery. This page explains how Cuey handles failures and retries.
+
+## Delivery Failure
+
+A webhook delivery is considered failed when:
+
+- The HTTP request times out
+- The server returns a non-2xx status code (e.g., 4xx, 5xx)
+- A network error occurs (connection refused, DNS failure, etc.)
+- The server doesn't respond within the timeout period
+
+When a delivery fails, the event enters the **Processing** state while retries are attempted.
+
+## Retry Mechanism
+
+### Retry Configuration
+
+You can configure retry behavior when creating an event or cron job:
+
+<ResponseField name="RetryConfig" type="object">
+  Configuration for retry behavior.
+
+  <Expandable title="RetryConfig properties">
+    <ResponseField name="maxRetries" type="number" required>
+      Maximum number of retry attempts. Range: 1-10. Defaults to 3 if not specified.
+    </ResponseField>
+
+    <ResponseField name="backoffMs" type="number" required>
+      Initial backoff delay in milliseconds before the first retry. Range: 100-5000.
+    </ResponseField>
+
+    <ResponseField name="backoffType" type="string" required>
+      Backoff strategy. Options: `exponential` (backoff doubles each retry) or `linear` (constant backoff).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Retry Process
+
+When a webhook delivery fails:
+
+1. **First retry**: After `backoffMs` milliseconds, Cuey attempts the first retry
+2. **Subsequent retries**: 
+   - **Exponential backoff**: Each retry waits twice as long as the previous one (backoffMs × 2^retry_number)
+   - **Linear backoff**: Each retry waits the same amount of time (backoffMs)
+3. **Max retries**: After all retry attempts are exhausted, the event status changes to **Failed**
+
+### Retry Example
+
+For a retry configuration with `maxRetries: 3`, `backoffMs: 1000`, and `backoffType: "exponential"`:
+
+- **Initial attempt**: Immediate
+- **Retry 1**: After 1 second (1000ms)
+- **Retry 2**: After 2 seconds (2000ms)
+- **Retry 3**: After 4 seconds (4000ms)
+- **Final status**: Failed if all attempts fail
+
+For `backoffType: "linear"` with the same configuration:
+
+- **Initial attempt**: Immediate
+- **Retry 1**: After 1 second (1000ms)
+- **Retry 2**: After 1 second (1000ms)
+- **Retry 3**: After 1 second (1000ms)
+- **Final status**: Failed if all attempts fail
+
+## Event Status During Retries
+
+While retries are being attempted, the event remains in the **Processing** state. The event only transitions to **Failed** after all retry attempts have been exhausted.
+
+Each retry attempt is logged, and you can view the execution history through the event details, including:
+
+- Response status codes from each attempt
+- Response headers and body (truncated to 1KB)
+- Response duration
+- Error messages if the attempt failed
+
+## Success After Retry
+
+If any retry attempt succeeds (receives a 2xx status code), the event immediately transitions to **Success** and no further retries are attempted.
+
+## Monitoring Failed Events
+
+You can monitor failed events by:
+
+1. **Filtering events by status**: List all events with `status: "failed"`
+2. **Checking event details**: Retrieve a specific event to see the full retry history and error details
+3. **Reviewing error messages**: Each failed event includes a `response_error` field with details about why the delivery failed
+
+## Best Practices
+
+### Configure Appropriate Retries
+
+- Use **exponential backoff** for transient failures (server overload, temporary network issues)
+- Use **linear backoff** for consistent retry intervals
+- Set `maxRetries` based on your tolerance for delayed delivery vs. giving up
+
+### Handle Different Failure Types
+
+- **4xx errors** (client errors): Usually indicate invalid requests—retries may not help unless you fix the request
+- **5xx errors** (server errors): Often transient—retries are more likely to succeed
+- **Timeouts**: May indicate server overload—exponential backoff is recommended
+
+### Monitor and Alert
+
+Set up monitoring for failed events and configure alerts to notify you when failures occur, especially for critical webhooks.
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Building Blocks" icon="puzzle" href="/building-blocks">
+    Understand events and crons.
+  </Card>
+  <Card title="Retry Configuration Guide" icon="arrow-rotate-right" href="/guides/retry-configuration">
+    Learn more about configuring retries.
+  </Card>
+  <Card title="Events" icon="calendar" href="/typescript-client/events">
+    Explore the Events API reference.
+  </Card>
+  <Card title="TypeScript Error Handling" icon="code" href="/typescript-client/error-handling">
+    Learn how to handle errors in the TypeScript client.
+  </Card>
+</CardGroup>
+

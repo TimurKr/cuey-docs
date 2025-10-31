@@ -1,0 +1,266 @@
+---
+title: "List Events"
+description: "List all events with optional pagination and filters"
+---
+
+## Overview
+
+List all events with optional pagination and filtering by status or cron ID.
+
+<RequestExample>
+
+```typescript List all events
+import { cuey } from "cuey";
+
+const { data: events, pagination } = await cuey.events.list();
+```
+
+```typescript With pagination
+import { cuey } from "cuey";
+
+const { data: events, pagination } = await cuey.events.list({
+  page: 1,
+  limit: 50,
+});
+```
+
+```typescript Filter by status
+import { cuey } from "cuey";
+
+const { data: pendingEvents } = await cuey.events.list({
+  status: "pending",
+});
+```
+
+```typescript Filter by cron ID
+import { cuey } from "cuey";
+
+const { data: cronEvents } = await cuey.events.list({
+  cron_id: "cron-uuid-here",
+});
+```
+
+</RequestExample>
+
+## Parameters
+
+<ParamField body="page" type="number" default="0">
+  Page number (0-indexed). Defaults to 0.
+</ParamField>
+
+<ParamField body="limit" type="number" default="100">
+  Number of items per page. Range: 1-1000. Defaults to 100.
+</ParamField>
+
+<ParamField body="status" type="string">
+  Filter events by status. Options: `pending`, `processing`, `success`, `failed`.
+</ParamField>
+
+<ParamField body="cron_id" type="string">
+  Filter events by the cron job that created them. Use a valid cron UUID.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="Event[]" required>
+  Array of event objects.
+
+  <Expandable title="Event properties">
+    <ResponseField name="id" type="string" required>
+      Unique identifier for the event (UUID).
+    </ResponseField>
+
+    <ResponseField name="cron_id" type="string | null">
+      Parent cron ID if this event was created by a cron job. `null` if created manually.
+    </ResponseField>
+
+    <ResponseField name="retry_of" type="string | null">
+      Original event ID if this is a retry attempt. `null` for original events.
+    </ResponseField>
+
+    <ResponseField name="scheduled_at" type="string" required>
+      ISO 8601 timestamp when the event is scheduled to execute.
+    </ResponseField>
+
+    <ResponseField name="executed_at" type="string | null">
+      ISO 8601 timestamp when the event was executed. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="status" type="EventStatus" required>
+      Current status of the event. Values: `pending`, `processing`, `success`, `failed`.
+    </ResponseField>
+
+    <ResponseField name="webhook_url" type="string" required>
+      The webhook URL that will be called.
+    </ResponseField>
+
+    <ResponseField name="method" type="HttpMethod" required>
+      HTTP method used for the webhook request. Defaults to `POST`.
+    </ResponseField>
+
+    <ResponseField name="headers" type="object | null">
+      Custom headers to include in the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="payload" type="object | null">
+      Payload to send with the webhook request. `null` if not set.
+    </ResponseField>
+
+    <ResponseField name="retry_config" type="object | null">
+      Retry configuration for failed webhooks.
+
+      <Expandable title="RetryConfig properties">
+        <ResponseField name="maxRetries" type="number" required>
+          Maximum number of retry attempts (1-10).
+        </ResponseField>
+
+        <ResponseField name="backoffMs" type="number" required>
+          Backoff delay in milliseconds (100-5000).
+        </ResponseField>
+
+        <ResponseField name="backoffType" type="string" required>
+          Backoff strategy. Values: `exponential`, `linear`.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+
+    <ResponseField name="response_status" type="number | null">
+      HTTP status code from the webhook response. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_headers" type="object | null">
+      Response headers from the webhook. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_body" type="string | null">
+      Response body from the webhook (truncated to 1KB). `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_duration" type="number | null">
+      Duration of the webhook request in milliseconds. `null` if not yet executed.
+    </ResponseField>
+
+    <ResponseField name="response_error" type="string | null">
+      Error message if the webhook execution failed. `null` if successful or not yet executed.
+    </ResponseField>
+
+    <ResponseField name="created_at" type="string | null">
+      ISO 8601 timestamp when the event was created.
+    </ResponseField>
+
+    <ResponseField name="updated_at" type="string | null">
+      ISO 8601 timestamp when the event was last updated.
+    </ResponseField>
+
+    <ResponseField name="team_id" type="string | null">
+      Team ID associated with the event.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="pagination" type="object" required>
+  Pagination information.
+
+  <Expandable title="Pagination properties">
+    <ResponseField name="page" type="number" required>
+      Current page number (0-indexed).
+    </ResponseField>
+
+    <ResponseField name="limit" type="number" required>
+      Number of items per page.
+    </ResponseField>
+
+    <ResponseField name="total" type="number" required>
+      Total number of items across all pages.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+
+```json Success response
+{
+  "data": [
+    {
+      "id": "event-uuid-here",
+      "cron_id": null,
+      "retry_of": null,
+      "scheduled_at": "2024-12-31T23:59:59Z",
+      "executed_at": null,
+      "status": "pending",
+      "webhook_url": "https://api.example.com/webhook",
+      "method": "POST",
+      "headers": null,
+      "payload": {
+        "message": "Hello, Cuey!"
+      },
+      "retry_config": null,
+      "response_status": null,
+      "response_headers": null,
+      "response_body": null,
+      "response_duration": null,
+      "response_error": null,
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:30:00Z",
+      "team_id": "team-uuid-here"
+    }
+  ],
+  "pagination": {
+    "page": 0,
+    "limit": 100,
+    "total": 1
+  }
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+<Warning>
+Requesting a page number that is out of range (e.g., page 100 when only 10 pages exist) will throw an `InternalServerError`.
+</Warning>
+
+- `UnauthorizedError`: If API key is invalid or missing
+- `InternalServerError`: If the requested page is out of range
+
+## Examples
+
+### List Pending Events
+
+```typescript
+import { cuey } from "cuey";
+
+const { data: pendingEvents } = await cuey.events.list({
+  status: "pending",
+});
+
+console.log(`Found ${pendingEvents.length} pending events`);
+```
+
+### List Failed Events with Pagination
+
+```typescript
+import { cuey } from "cuey";
+
+const { data: failedEvents, pagination } = await cuey.events.list({
+  status: "failed",
+  page: 0,
+  limit: 50,
+});
+
+console.log(`Found ${failedEvents.length} failed events (total: ${pagination.total})`);
+```
+
+### List Events Created by a Cron
+
+```typescript
+import { cuey } from "cuey";
+
+const { data: cronEvents } = await cuey.events.list({
+  cron_id: "cron-uuid-here",
+});
+
+console.log(`Found ${cronEvents.length} events for this cron`);
+```
+
