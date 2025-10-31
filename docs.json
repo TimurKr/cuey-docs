@@ -11,26 +11,29 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Getting Started",
+        "tab": "Concepts",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Concepts",
             "pages": [
-              "index",
-              "building-blocks",
-              "retrying-events",
-              "installation"
+              "concepts/building-blocks",
+              "concepts/retrying-events",
+              "concepts/cron-expressions",
+              "concepts/retry-configuration",
+              "concepts/webhook-urls",
+              "concepts/common-use-cases"
             ]
           }
         ]
       },
       {
-        "tab": "TypeScript Client",
+        "tab": "TypeScript SDK",
         "groups": [
           {
-            "group": "TypeScript Client",
+            "group": "TypeScript SDK",
             "pages": [
               "typescript-client/overview",
+              "typescript-client/installation",
               "typescript-client/quickstart",
               {
                 "group": "Events",
@@ -99,20 +102,6 @@
                 ]
               },
               "api-reference/errors"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Guides",
-            "pages": [
-              "guides/cron-expressions",
-              "guides/retry-configuration",
-              "guides/webhook-urls",
-              "guides/common-use-cases"
             ]
           }
         ]

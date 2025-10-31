@@ -47,7 +47,9 @@ const event = await cuey.events.create({
 ```
 
 <Info>
-For advanced configuration options, including using multiple API keys or custom instances, see the [Advanced Configuration](/typescript-client/advanced-configuration) section.
+  For advanced configuration options, including using multiple API keys or
+  custom instances, see the [Advanced
+  Configuration](/typescript-client/advanced-configuration) section.
 </Info>
 
 ## Client Structure
@@ -56,36 +58,31 @@ The `cuey` instance provides resource objects for managing events and cron jobs:
 
 ```typescript
 // Access events resource
+const newEvent = await cuey.events.create({ ... });
 const { data: events } = await cuey.events.list();
 const event = await cuey.events.get("event-id");
-const newEvent = await cuey.events.create({ ... });
 await cuey.events.update("event-id", { ... });
 await cuey.events.delete("event-id");
 
 // Access crons resource
+const newCron = await cuey.crons.create({ ... });
 const { data: crons } = await cuey.crons.list();
 const cron = await cuey.crons.get("cron-id");
-const newCron = await cuey.crons.create({ ... });
 await cuey.crons.update("cron-id", { ... });
 await cuey.crons.delete("cron-id");
+
+// Convenience methods
+const event = await cuey.schedule({ ... }); // Alias for cuey.events.create()
+const cron = await cuey.repeat({ ... });    // Alias for cuey.crons.create()
 ```
 
 ## What's Next?
 
 <CardGroup cols={2}>
-  <Card
-    title="Events"
-    icon="calendar"
-    href="/typescript-client/events"
-  >
+  <Card title="Events" icon="calendar" href="/typescript-client/events">
     Complete reference for managing scheduled events.
   </Card>
-  <Card
-    title="Crons"
-    icon="refresh"
-    href="/typescript-client/crons"
-  >
+  <Card title="Crons" icon="refresh" href="/typescript-client/crons">
     Complete reference for managing cron jobs.
   </Card>
 </CardGroup>
-

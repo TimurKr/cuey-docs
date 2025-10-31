@@ -33,8 +33,8 @@ const updatedEvent = await cuey.events.update("event-id", {
   The full URL of the webhook endpoint to call. Must be a valid HTTP/HTTPS URL.
 </ParamField>
 
-<ParamField body="method" type="string" required>
-  HTTP method to use for the webhook request. Options: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`.
+<ParamField body="method" type="string">
+  HTTP method to use for the webhook request. Options: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`. Defaults to `POST`.
 </ParamField>
 
 <ParamField body="scheduled_at" type="string" required>

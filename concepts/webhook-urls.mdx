@@ -1,0 +1,110 @@
+---
+title: "Webhook URLs"
+description: "Understanding webhook URL formats"
+---
+
+## Overview
+
+Cuey supports full URLs for webhook endpoints. When creating events or cron jobs, you must provide a valid HTTP or HTTPS URL.
+
+## Full URLs
+
+Full URLs include the complete URL with protocol, domain, and path:
+
+```
+https://api.example.com/webhook
+```
+
+### URL Requirements
+
+- Must start with `http://` or `https://`
+- Must be a valid URL format
+- Domain must be resolvable (for webhook delivery)
+
+### Example URLs
+
+```
+https://api.example.com/webhook
+https://api.example.com/api/v1/webhooks/notify
+http://localhost:3000/webhook
+https://webhook.site/unique-id
+```
+
+## When to Use Different URL Patterns
+
+### Production APIs
+
+Use your production API domain:
+
+```
+https://api.production.com/webhook
+```
+
+### Staging/Development APIs
+
+Use staging or development domains:
+
+```
+https://api.staging.com/webhook
+http://localhost:3000/webhook
+```
+
+### External Webhooks
+
+For external services or webhook testing tools:
+
+```
+https://webhook.site/unique-id
+https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+```
+
+## URL Validation
+
+Cuey validates webhook URLs when creating events or cron jobs. Invalid URLs will be rejected with a validation error.
+
+### Valid URL Examples
+
+- ✅ `https://api.example.com/webhook`
+- ✅ `http://localhost:3000/webhook`
+- ✅ `https://webhook.site/abc123`
+
+### Invalid URL Examples
+
+- ❌ `api.example.com/webhook` (missing protocol)
+- ❌ `example.com/webhook` (missing protocol)
+- ❌ `invalid-url` (not a valid URL format)
+
+## Best Practices
+
+### Use HTTPS in Production
+
+Always use HTTPS URLs in production environments:
+
+- ✅ `https://api.example.com/webhook`
+- ❌ `http://api.example.com/webhook` (not secure)
+
+### Store URLs in Configuration
+
+Store webhook URLs in environment variables or configuration files rather than hardcoding them:
+
+```
+WEBHOOK_URL=https://api.example.com/webhook
+```
+
+### Validate URLs Before Creating Events
+
+Validate URLs in your application before sending them to Cuey to catch errors early.
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Building Blocks" icon="puzzle" href="/concepts/building-blocks">
+    Understand events and crons.
+  </Card>
+  <Card title="TypeScript SDK" icon="code" href="/typescript-client/overview">
+    Get started with the TypeScript SDK.
+  </Card>
+  <Card title="REST API" icon="plug" href="/api-reference/introduction">
+    Explore the REST API documentation.
+  </Card>
+</CardGroup>
