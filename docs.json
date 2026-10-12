@@ -7,7 +7,7 @@
     "light": "#f4f4f5",
     "dark": "#f4f4f5"
   },
-  "favicon": "/logo/light.svg",
+  "favicon": "/logo/favicon.svg",
   "navigation": {
     "tabs": [
       {
@@ -114,7 +114,11 @@
       }
     ]
   },
-  "logo": "/logo/light.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://cuey.dev"
+  },
   "navbar": {
     "links": [
       {
